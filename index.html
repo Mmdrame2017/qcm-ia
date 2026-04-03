@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QCM IA — Générateur Pédagogique</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#4263EB;--primary-dark:#3451c7;--secondary:#F59F00;
+  --success:#2ECC71;--danger:#E74C3C;
+  --bg:linear-gradient(135deg,#2C3E8C 0%,#6A4FBA 100%);
+}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);min-height:100vh;padding:20px}
+.container{max-width:960px;margin:0 auto}
+
+/* HEADER */
+.header{background:#fff;padding:28px 30px;border-radius:20px;box-shadow:0 8px 30px rgba(0,0,0,.2);text-align:center;margin-bottom:22px}
+.hdr-icon{width:74px;height:74px;background:var(--bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.9em;color:#fff;margin:0 auto 16px;box-shadow:0 4px 15px rgba(66,99,235,.4)}
+.header h1{color:#2C3E8C;font-size:1.8em;margin-bottom:6px}
+.header p{color:#666;font-size:.9em}
+.mode-tabs{display:flex;background:#f5f5f5;border-radius:12px;padding:5px;max-width:340px;margin:18px auto 0}
+.mode-tab{flex:1;padding:10px 16px;border:none;border-radius:8px;font-size:.93em;font-weight:600;cursor:pointer;transition:all .3s;background:transparent;color:#888;display:flex;align-items:center;justify-content:center;gap:7px}
+.mode-tab.active{background:#fff;color:#2C3E8C;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+
+/* PROF SUB-NAV */
+.prof-subnav{display:flex;background:#fff;border-radius:14px;padding:6px;box-shadow:0 4px 15px rgba(0,0,0,.1);margin-bottom:18px;gap:4px}
+.snav{flex:1;padding:10px 8px;border:none;border-radius:10px;font-size:.85em;font-weight:600;cursor:pointer;transition:all .25s;background:transparent;color:#888;display:flex;align-items:center;justify-content:center;gap:6px}
+.snav.active{background:var(--bg);color:#fff;box-shadow:0 3px 12px rgba(66,99,235,.35)}
+.snav:hover:not(.active){background:#f0f0f0;color:#444}
+
+/* PROGRESS */
+.progress-container{background:#fff;padding:18px 22px;border-radius:14px;box-shadow:0 4px 15px rgba(0,0,0,.1);margin-bottom:18px}
+.progress-steps{display:flex;justify-content:space-between;margin-bottom:13px;align-items:flex-start}
+.step{flex:1;text-align:center;position:relative}
+.step::after{content:'';position:absolute;top:22px;left:56%;width:88%;height:2px;background:#e0e0e0;z-index:0}
+.step:last-child::after{display:none}
+.step.completed::after{background:var(--primary)}
+.step-circle{width:44px;height:44px;background:#e0e0e0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 7px;font-size:1em;color:#fff;transition:all .3s;position:relative;z-index:1}
+.step.active .step-circle{background:var(--bg);transform:scale(1.1);box-shadow:0 4px 15px rgba(66,99,235,.4)}
+.step.completed .step-circle{background:var(--primary)}
+.step-label{font-size:.75em;color:#888;font-weight:600}
+.step.active .step-label{color:var(--primary)}
+.progress-bar{height:5px;background:#e0e0e0;border-radius:10px;overflow:hidden}
+.progress-fill{height:100%;background:var(--bg);transition:width .5s ease}
+
+/* FORM CONTAINER */
+.form-container{background:#fff;padding:32px;border-radius:20px;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.prof-panel{display:none}.prof-panel.active{display:block}
+.form-step{display:none;animation:fadeIn .35s}.form-step.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* FORM ELEMENTS */
+.form-title{font-size:1.4em;color:#333;margin-bottom:22px;display:flex;align-items:center;gap:11px;padding-bottom:13px;border-bottom:2px solid #f0f0f0}
+.ftitle-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--primary),#845EF7);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1em;flex-shrink:0}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;margin-bottom:7px;color:#333;font-weight:600;font-size:.92em}
+.required{color:#E74C3C}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:11px;font-size:.97em;transition:all .3s;font-family:inherit;background:#fff}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(66,99,235,.12)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+/* CONFIG CARDS (nb questions) */
+.config-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:5px}
+.config-card{border:2px solid #e0e0e0;border-radius:11px;padding:13px 6px;text-align:center;cursor:pointer;transition:all .25s;background:#f9f9f9}
+.config-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.config-card.selected{border-color:var(--primary);background:#EEF2FF}
+.config-card .num{font-size:1.6em;font-weight:800;color:var(--primary)}
+.config-card .lbl{font-size:.76em;color:#888;margin-top:2px}
+
+/* FILE UPLOAD */
+.file-upload{border:3px dashed #e0e0e0;border-radius:14px;padding:28px;text-align:center;cursor:pointer;transition:all .3s;background:#f9f9f9}
+.file-upload:hover,.file-upload.dragover{border-color:var(--primary);background:#EEF2FF}
+.file-upload.has-file{border-color:var(--success);background:#f0fff7}
+.file-upload input[type=file]{display:none}
+.file-icon{font-size:2.6em;color:var(--primary);margin-bottom:10px}
+.file-text{color:#444;font-weight:600;margin-bottom:4px}
+.file-hint{font-size:.8em;color:#aaa}
+.file-name-display{margin-top:9px;padding:9px 13px;background:#fff;border-radius:8px;display:none;align-items:center;gap:9px;border:1px solid #e0e0e0}
+.file-name-display.show{display:flex}
+
+/* API KEY */
+.api-key-wrap{position:relative}
+.api-key-wrap input{padding-right:44px;font-family:monospace}
+.toggle-key{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#bbb;font-size:.95em}
+
+/* BUTTONS */
+.form-buttons{display:flex;gap:11px;margin-top:25px}
+.btn{flex:1;padding:13px;border:none;border-radius:11px;font-size:.97em;font-weight:700;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:9px}
+.btn-primary{background:linear-gradient(135deg,var(--primary),#845EF7);color:#fff}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(66,99,235,.4)}
+.btn-success{background:linear-gradient(135deg,#2ECC71,#27AE60);color:#fff}
+.btn-success:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(46,204,113,.4)}
+.btn-secondary{background:#f0f0f0;color:#555;flex:.5}
+.btn-secondary:hover{background:#e0e0e0}
+.btn-danger{background:linear-gradient(135deg,#E74C3C,#c0392b);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.btn-full{flex:none;width:100%}
+.btn-sm{padding:7px 14px;font-size:.83em;font-weight:600;border:none;border-radius:8px;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:6px}
+
+/* INFO BOXES */
+.info-box{background:#EEF2FF;border-left:4px solid var(--primary);padding:12px 16px;border-radius:8px;margin-bottom:18px}
+.info-box.warning{background:#FFF9C4;border-left-color:#F59F00}
+.info-box.success{background:#EBFBEE;border-left-color:#2ECC71}
+.info-box.danger{background:#FFEBEE;border-left-color:#E74C3C}
+.info-box p{margin:3px 0;color:#333;font-size:.9em}
+
+/* QCM PREVIEW (prof - après génération) */
+.qcm-preview{max-height:380px;overflow-y:auto;padding-right:4px;margin-bottom:10px}
+.question-preview{background:#f9f9f9;border-radius:11px;padding:14px;margin-bottom:12px;border-left:4px solid var(--primary)}
+.question-preview .q-num{font-size:.73em;color:var(--primary);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+.question-preview .q-text{font-weight:600;color:#333;margin-bottom:11px;font-size:.91em;line-height:1.4}
+.choices-preview{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.choice-preview{padding:7px 10px;border-radius:7px;font-size:.84em;background:#fff;border:1px solid #e0e0e0;display:flex;gap:6px;align-items:flex-start}
+.choice-preview.correct{background:#EBFBEE;border-color:#2ECC71;color:#1a7a45;font-weight:600}
+.choice-letter{font-weight:800;min-width:15px}
+.explication-preview{margin-top:9px;padding:7px 11px;background:#FFF9C4;border-radius:7px;font-size:.81em;color:#555}
+
+/* SHARE (après génération) */
+.share-block{border-top:2px solid #f0f0f0;padding-top:20px;margin-top:10px}
+.share-url-row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:9px 0}
+.share-input{flex:1;min-width:180px;padding:10px 13px;border:2px solid #e0e0e0;border-radius:9px;font-size:.82em;font-family:monospace;background:#f9f9f9;color:#444}
+.copy-btn{padding:9px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:.87em;display:inline-flex;align-items:center;gap:6px;transition:all .25s;white-space:nowrap}
+.copy-btn:hover{background:var(--primary-dark)}
+.share-code-box{background:#1e1e2e;border-radius:11px;padding:14px 16px;margin:9px 0}
+.share-code-box p{color:#a0a0c0;font-size:.8em;margin-bottom:7px}
+.code-display{font-family:'Courier New',monospace;color:#7FBA00;font-size:.78em;word-break:break-all;line-height:1.5;max-height:65px;overflow:hidden}
+
+/* QCM NUMBER BADGE */
+.qcm-num-badge{display:inline-flex;align-items:center;background:linear-gradient(135deg,var(--primary),#845EF7);color:#fff;font-weight:800;font-size:.78em;padding:4px 10px;border-radius:20px;letter-spacing:.5px}
+
+/* MES QCM — CARDS */
+.myqcm-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.qcm-cards-grid{display:flex;flex-direction:column;gap:14px}
+.qcm-admin-card{background:#fff;border:2px solid #f0f0f0;border-radius:14px;padding:18px 20px;box-shadow:0 2px 10px rgba(0,0,0,.06);transition:all .25s}
+.qcm-admin-card:hover{border-color:#c5cff7;box-shadow:0 4px 18px rgba(66,99,235,.1)}
+.qca-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:13px}
+.qca-info{flex:1}
+.qca-title{font-weight:700;color:#222;font-size:1em;margin-bottom:5px}
+.qca-meta{font-size:.82em;color:#888;display:flex;gap:12px;flex-wrap:wrap}
+.qca-meta span{display:flex;align-items:center;gap:4px}
+.qca-stats{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.stat-pill{background:#EEF2FF;color:var(--primary);padding:3px 10px;border-radius:20px;font-size:.78em;font-weight:600}
+.stat-pill.green{background:#EBFBEE;color:#1a7a45}
+.stat-pill.orange{background:#FFF9C4;color:#856404}
+
+/* CORRECTION TOGGLE */
+.correction-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0;margin:12px 0}
+.correction-label{font-weight:600;color:#333;font-size:.9em;flex:1}
+.correction-status{font-size:.82em;font-weight:700}
+.correction-status.on{color:#2ECC71}
+.correction-status.off{color:#aaa}
+.toggle-switch{position:relative;width:48px;height:26px;cursor:pointer}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:26px;transition:.3s}
+.toggle-track::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle-switch input:checked+.toggle-track{background:#2ECC71}
+.toggle-switch input:checked+.toggle-track::before{transform:translateX(22px)}
+
+/* QCM ACTIONS */
+.qca-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn-copy-link{background:#EEF2FF;color:var(--primary)}
+.btn-copy-link:hover{background:var(--primary);color:#fff}
+.btn-view-results{background:#EBFBEE;color:#1a7a45}
+.btn-view-results:hover{background:#2ECC71;color:#fff}
+.btn-delete-qcm{background:#FFEBEE;color:#c0392b}
+.btn-delete-qcm:hover{background:#E74C3C;color:#fff}
+
+/* RESULTS TABLE */
+.results-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.results-toolbar select{padding:9px 13px;border:2px solid #e0e0e0;border-radius:9px;font-size:.9em;background:#fff;min-width:220px}
+.results-table-wrap{overflow-x:auto;border-radius:11px;border:1px solid #e0e0e0}
+.data-table{width:100%;border-collapse:collapse;font-size:.85em}
+.data-table th{background:linear-gradient(135deg,var(--primary),#845EF7);color:#fff;padding:10px 12px;text-align:left;font-weight:600;white-space:nowrap}
+.data-table td{padding:9px 12px;border-bottom:1px solid #f0f0f0;color:#333}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:#f9f9f9}
+.mention-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.78em;font-weight:700}
+.mention-badge.exc{background:#C8E6C9;color:#1B5E20}
+.mention-badge.tb{background:#B3E5FC;color:#01579B}
+.mention-badge.b{background:#E3F2FD;color:#1565C0}
+.mention-badge.p{background:#FFF9C4;color:#856404}
+.mention-badge.ins{background:#FFCCBC;color:#BF360C}
+.mention-badge.ti{background:#FFCDD2;color:#C62828}
+.empty-state{text-align:center;padding:40px 20px;color:#aaa}
+.empty-state i{font-size:3em;margin-bottom:12px;display:block;opacity:.4}
+
+/* CONFIG PANEL */
+.setup-step{background:#f9f9f9;border-radius:12px;padding:18px;margin-bottom:14px;border-left:4px solid var(--primary)}
+.setup-step-num{font-size:.75em;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.setup-step h4{color:#333;margin-bottom:8px;font-size:.97em}
+.setup-step p{color:#666;font-size:.87em;line-height:1.5}
+.config-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.config-row .form-group{flex:1;min-width:200px;margin-bottom:0}
+.conn-status{padding:8px 14px;border-radius:8px;font-size:.85em;font-weight:600;display:none;align-items:center;gap:7px}
+.conn-status.show{display:flex}
+.conn-status.ok{background:#EBFBEE;color:#1a7a45}
+.conn-status.fail{background:#FFEBEE;color:#c0392b}
+
+/* STUDENT — RULES STEP */
+.rules-card{background:#f9f9f9;border-radius:14px;padding:22px;margin-bottom:20px}
+.rules-card h3{color:#333;margin-bottom:14px;font-size:1em;display:flex;align-items:center;gap:8px}
+.rule-item{display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid #ebebeb;font-size:.91em;color:#444}
+.rule-item:last-child{border-bottom:none}
+.rule-item i{color:var(--primary);margin-top:2px;flex-shrink:0;width:16px}
+.qcm-info-banner{background:linear-gradient(135deg,var(--primary),#845EF7);color:#fff;border-radius:14px;padding:20px 22px;margin-bottom:20px;display:flex;gap:22px;flex-wrap:wrap}
+.qib-stat{text-align:center;flex:1;min-width:80px}
+.qib-stat .val{font-size:1.8em;font-weight:900;line-height:1}
+.qib-stat .lbl{font-size:.75em;opacity:.85;margin-top:4px}
+.accept-row{display:flex;align-items:center;gap:12px;background:#fff;border:2px solid #e0e0e0;border-radius:12px;padding:14px;margin-top:18px;cursor:pointer;transition:all .25s}
+.accept-row:hover{border-color:var(--primary);background:#EEF2FF}
+.accept-row input[type=checkbox]{width:20px;height:20px;cursor:pointer;accent-color:var(--primary)}
+.accept-row label{font-weight:600;color:#333;cursor:pointer;font-size:.93em}
+
+/* CODE INPUT (étudiant) */
+.code-input-box{background:#f9f9f9;border-radius:13px;padding:20px;margin-bottom:20px;border:2px dashed #e0e0e0}
+.code-input-box textarea{width:100%;min-height:70px;border:2px solid #e0e0e0;border-radius:9px;padding:10px;font-family:monospace;font-size:.8em;resize:none;transition:all .3s}
+.code-input-box textarea:focus{outline:none;border-color:var(--primary)}
+
+/* TIMER */
+.timer-bar{background:#fff;padding:12px 20px;border-radius:11px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 12px rgba(0,0,0,.08)}
+.timer-left{display:flex;align-items:center;gap:8px;color:#333;font-weight:600}
+.timer-count{font-size:1.35em;font-weight:800;color:var(--primary);font-variant-numeric:tabular-nums}
+.timer-count.warning{color:var(--secondary)}
+.timer-count.danger{color:var(--danger);animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.answers-progress{display:flex;align-items:center;gap:7px;color:#888;font-size:.88em}
+
+/* QUESTION CARD */
+.question-card{background:#fff;border-radius:13px;padding:20px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,.07);border:2px solid #f0f0f0;transition:all .25s}
+.question-card:hover:not(.locked){border-color:#c5cff7}
+.question-card.answered{border-color:var(--success)}
+.question-card.locked{opacity:.8;pointer-events:none}
+.q-header{display:flex;align-items:flex-start;gap:13px;margin-bottom:15px}
+.q-badge{min-width:36px;height:36px;background:linear-gradient(135deg,var(--primary),#845EF7);border-radius:9px;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:.92em;flex-shrink:0}
+.q-text-main{font-weight:600;color:#333;line-height:1.5;font-size:.95em;padding-top:6px}
+.answer-select{width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:11px;font-size:.92em;background:#fff;cursor:pointer;transition:all .3s;color:#333;font-family:inherit;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234263EB'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;background-size:21px}
+.answer-select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(66,99,235,.12)}
+.answer-select.answered{border-color:var(--success);background-color:#EBFBEE}
+.answer-select:disabled{background-color:#f5f5f5;cursor:not-allowed;color:#999}
+
+/* EXAM LOCKED BANNER */
+.exam-locked-banner{background:#1e1e2e;color:#fff;border-radius:12px;padding:16px 20px;margin-bottom:18px;display:none;align-items:center;gap:14px}
+.exam-locked-banner.show{display:flex}
+.exam-locked-banner i{font-size:1.5em;color:var(--secondary)}
+
+/* RESULTS */
+.results-card{text-align:center;padding:10px 0 20px}
+.score-circle{width:138px;height:138px;background:var(--bg);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 30px rgba(66,99,235,.4);animation:scaleIn .55s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes scaleIn{from{transform:scale(0)}to{transform:scale(1)}}
+.score-num{font-size:2.3em;font-weight:900;color:#fff;line-height:1}
+.score-label{font-size:.83em;color:rgba(255,255,255,.8);margin-top:2px}
+.score-mention{font-size:1.5em;font-weight:800;margin-bottom:6px}
+.result-details{background:#f9f9f9;border-radius:13px;padding:16px;margin:16px 0;text-align:left}
+.result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ebebeb;font-size:.91em}
+.result-row:last-child{border-bottom:none}
+.result-row .label{color:#666}
+.result-row .value{font-weight:700;color:#333}
+.correction-item{padding:12px;border-radius:10px;margin-bottom:10px}
+.correction-item.correct{background:#EBFBEE;border-left:4px solid #2ECC71}
+.correction-item.wrong{background:#FFEBEE;border-left:4px solid #E74C3C}
+.correction-item.unanswered{background:#FFF9C4;border-left:4px solid #F59F00}
+.correction-q{font-weight:600;color:#333;margin-bottom:7px;font-size:.87em}
+.correction-answers{display:flex;gap:7px;font-size:.82em;flex-wrap:wrap}
+.corr-tag{padding:3px 9px;border-radius:20px;font-weight:600}
+.corr-tag.given-wrong{background:#FFCDD2;color:#C62828}
+.corr-tag.given-correct{background:#C8E6C9;color:#1B5E20}
+.corr-tag.correct-answer{background:#C8E6C9;color:#1B5E20}
+
+/* WAITING BOX (correction non activée) */
+.waiting-box{text-align:center;padding:40px 20px}
+.waiting-icon{width:90px;height:90px;background:linear-gradient(135deg,var(--secondary),#e67e00);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.2em;color:#fff;margin:0 auto 18px;animation:pulse-ring 2s infinite}
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 0 0 rgba(245,159,0,.4)}50%{box-shadow:0 0 0 15px rgba(245,159,0,0)}}
+.waiting-box h2{color:#333;margin-bottom:10px}
+.waiting-box p{color:#888;font-size:.92em;line-height:1.6}
+
+/* LOADING */
+.loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.87);display:none;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px}
+.loading-overlay.show{display:flex}
+.spinner{width:56px;height:56px;border:5px solid rgba(255,255,255,.2);border-top-color:var(--secondary);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:#fff;font-size:1.05em;text-align:center}
+.loading-steps{color:rgba(255,255,255,.6);font-size:.85em}
+
+/* TOAST */
+.toast{position:fixed;top:20px;right:20px;background:#fff;padding:13px 17px;border-radius:11px;box-shadow:0 8px 30px rgba(0,0,0,.2);display:none;z-index:99999;min-width:250px;animation:slideIn .3s}
+@keyframes slideIn{from{transform:translateX(360px);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast.show{display:flex;align-items:center;gap:10px}
+.toast.success{border-left:4px solid #2ECC71}
+.toast.error{border-left:4px solid #E74C3C}
+.toast.info{border-left:4px solid var(--primary)}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#f1f1f1;border-radius:10px}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:var(--primary)}
+
+@media(max-width:768px){
+  body{padding:10px}
+  .form-container{padding:18px}
+  .form-row{grid-template-columns:1fr}
+  .config-grid{grid-template-columns:repeat(2,1fr)}
+  .choices-preview{grid-template-columns:1fr}
+  .form-buttons{flex-direction:column-reverse}
+  .btn-secondary{flex:none}
+  .share-url-row{flex-direction:column}
+  .prof-subnav{flex-wrap:wrap}
+  .snav{min-width:calc(50% - 4px)}
+  .qcm-info-banner{gap:12px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header" id="mainAppHeader">
+  <div class="hdr-icon"><i class="fas fa-graduation-cap"></i></div>
+  <h1>QCM IA — Générateur Pédagogique</h1>
+  <p>Créez, gérez et administrez vos questionnaires à partir de vos documents de cours</p>
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tabProf" onclick="setMode('prof')"><i class="fas fa-chalkboard-teacher"></i> Professeur</button>
+    <button class="mode-tab" id="tabStu" onclick="setMode('student')"><i class="fas fa-user-graduate"></i> Étudiant</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ PROF SECTION -->
+<div id="profSection">
+  <div class="prof-subnav">
+    <button class="snav active" id="snav-create" onclick="setProfTab('create')"><i class="fas fa-plus-circle"></i> Créer QCM</button>
+    <button class="snav" id="snav-myqcm" onclick="setProfTab('myqcm')"><i class="fas fa-list"></i> Mes QCM</button>
+    <button class="snav" id="snav-results" onclick="setProfTab('results')"><i class="fas fa-chart-bar"></i> Résultats</button>
+    <button class="snav" id="snav-config" onclick="setProfTab('config')"><i class="fas fa-cog"></i> Config</button>
+  </div>
+
+  <!-- Progress bar (visible seulement pour Créer) -->
+  <div class="progress-container" id="createProgress">
+    <div class="progress-steps">
+      <div class="step active" id="cp1"><div class="step-circle"><i class="fas fa-file-upload"></i></div><div class="step-label">Document</div></div>
+      <div class="step" id="cp2"><div class="step-circle"><i class="fas fa-magic"></i></div><div class="step-label">Génération</div></div>
+      <div class="step" id="cp3"><div class="step-circle"><i class="fas fa-share-alt"></i></div><div class="step-label">Partager</div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="createFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="form-container">
+
+    <!-- ── PANEL : CRÉER QCM ── -->
+    <div class="prof-panel active" id="panel-create">
+
+      <!-- Step 1: Config + Upload -->
+      <div class="form-step active" id="create-step-1">
+        <div class="form-title"><div class="ftitle-icon"><i class="fas fa-cogs"></i></div>Configuration du QCM</div>
+
+        <!-- En-tête officiel de l'examen -->
+        <div class="form-section-label"><i class="fas fa-university"></i> En-tête de l'examen (affiché aux étudiants)</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Université / Établissement</label>
+            <input type="text" id="universite" placeholder="ex : Université Cheikh Anta Diop"/>
+          </div>
+          <div class="form-group">
+            <label>Nom du professeur</label>
+            <input type="text" id="prof_nom" placeholder="ex : Pr. Moustapha DRAME"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Intitulé de l'examen</label>
+            <input type="text" id="intitule_examen" placeholder="ex : Contrôle de connaissances n°1"/>
+          </div>
+          <div class="form-group">
+            <label>Date de l'examen (affichée dans l'en-tête)</label>
+            <input type="date" id="date_examen"/>
+          </div>
+        </div>
+
+        <!-- Plage d'activation -->
+        <div class="form-section-label"><i class="fas fa-calendar-check"></i> Plage d'activation (optionnel)</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Accessible à partir du</label>
+            <input type="datetime-local" id="date_debut"/>
+          </div>
+          <div class="form-group">
+            <label>Accessible jusqu'au</label>
+            <input type="datetime-local" id="date_fin"/>
+          </div>
+        </div>
+        <div style="font-size:.8em;color:#888;margin:-6px 0 12px"><i class="fas fa-info-circle"></i> Si non renseigné, l'examen est accessible à tout moment.</div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Matière / Intitulé <span class="required">*</span></label>
+            <input type="text" id="matiere" placeholder="ex : Comptabilité Générale"/>
+          </div>
+          <div class="form-group">
+            <label>Niveau cible <span class="required">*</span></label>
+            <select id="niveau">
+              <option value="">— Choisir —</option>
+              <option value="L3">Licence 3 (L3)</option>
+              <option value="M1">Master 1 (M1)</option>
+              <option value="M2">Master 2 (M2)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nombre de questions <span class="required">*</span></label>
+          <div class="config-grid">
+            <div class="config-card" onclick="selectNbQ(5,this)"><div class="num">5</div><div class="lbl">questions</div></div>
+            <div class="config-card selected" onclick="selectNbQ(10,this)"><div class="num">10</div><div class="lbl">questions</div></div>
+            <div class="config-card" onclick="selectNbQ(15,this)"><div class="num">15</div><div class="lbl">questions</div></div>
+            <div class="config-card" onclick="selectNbQ(20,this)"><div class="num">20</div><div class="lbl">questions</div></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Durée (minutes)</label>
+            <input type="number" id="duree" value="20" min="5" max="180"/>
+          </div>
+          <div class="form-group">
+            <label>Langue</label>
+            <select id="langueQCM">
+              <option value="français">Français</option>
+              <option value="anglais">Anglais</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Document source <span class="required">*</span></label>
+          <div class="file-upload" id="fileZone" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" accept=".pdf,.txt,.docx" onchange="handleFileSelect(event)">
+            <div class="file-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+            <div class="file-text">Cliquez ou glissez votre document ici</div>
+            <div class="file-hint">PDF, TXT, DOCX — Max 10 MB</div>
+          </div>
+          <div class="file-name-display" id="fileNameDisplay">
+            <i class="fas fa-file-check" style="color:#2ECC71"></i>
+            <span id="fileNameText"></span>
+            <span id="fileSizeText" style="color:#aaa;font-size:.83em;margin-left:auto"></span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Clé API OpenAI</label>
+          <div id="apiConfigured" style="display:flex;align-items:center;gap:11px;padding:11px 14px;background:#EBFBEE;border:2px solid #2ECC71;border-radius:11px">
+            <i class="fas fa-check-circle" style="color:#2ECC71;font-size:1.1em"></i>
+            <span style="color:#1a7a45;font-weight:600;font-size:.93em">Clé API configurée</span>
+            <button type="button" onclick="toggleApiEdit()" style="margin-left:auto;background:none;border:none;color:#888;cursor:pointer;font-size:.83em;text-decoration:underline">Modifier</button>
+          </div>
+          <div id="apiEditSection" style="display:none;margin-top:9px">
+            <div class="api-key-wrap">
+              <input type="password" id="apiKey" placeholder="sk-..."/>
+              <button class="toggle-key" onclick="toggleApiVis()"><i class="fas fa-eye" id="eyeIcon"></i></button>
+            </div>
+            <small style="color:#aaa;margin-top:5px;display:block"><i class="fas fa-lock"></i> Non sauvegardée</small>
+          </div>
+        </div>
+        <div class="form-buttons">
+          <button class="btn btn-primary" onclick="startGeneration()"><i class="fas fa-magic"></i> Générer le QCM avec l'IA</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Preview + Share -->
+      <div class="form-step" id="create-step-3">
+        <div class="form-title"><div class="ftitle-icon"><i class="fas fa-check-circle"></i></div><div>QCM Généré — <span id="previewTitle" style="color:var(--primary)"></span></div></div>
+        <div class="info-box success">
+          <p><strong>✅ <span id="previewCount"></span> questions</strong> · Niveau <strong id="previewNiveau"></strong> · <strong id="previewDuree"></strong> min</p>
+          <p id="savedBadgeRow" style="display:none;margin-top:5px">
+            Sauvegardé sous <strong id="savedNumBadge"></strong> dans Google Sheets ✅
+          </p>
+        </div>
+        <div class="qcm-preview" id="qcmPreview"></div>
+        <div class="share-block">
+          <h3 style="color:#333;margin-bottom:13px;font-size:1.05em"><i class="fas fa-share-alt" style="color:var(--primary)"></i> Partager avec les étudiants</h3>
+          <div class="info-box">
+            <p><strong>Lien direct</strong> (si ce fichier est hébergé en ligne) :</p>
+          </div>
+          <div class="share-url-row">
+            <input class="share-input" id="shareUrl" readonly/>
+            <button class="copy-btn" onclick="copyShareUrl()"><i class="fas fa-copy"></i> Copier le lien</button>
+          </div>
+          <p style="color:#666;font-size:.87em;margin:13px 0 7px"><i class="fas fa-code"></i> <strong>Code QCM</strong> à envoyer aux étudiants (email, WhatsApp…) :</p>
+          <div class="share-code-box">
+            <p>Code à copier :</p>
+            <div class="code-display" id="codeDisplay"></div>
+          </div>
+          <button class="copy-btn" onclick="copyCode()"><i class="fas fa-copy"></i> Copier le code QCM</button>
+        </div>
+        <div class="form-buttons" style="margin-top:22px">
+          <button class="btn btn-secondary" onclick="goToCreateStep(1)"><i class="fas fa-redo"></i> Nouveau QCM</button>
+          <button class="btn btn-primary" onclick="setMode('student')"><i class="fas fa-user-graduate"></i> Tester côté étudiant</button>
+        </div>
+      </div>
+    </div><!-- /panel-create -->
+
+    <!-- ── PANEL : MES QCM ── -->
+    <div class="prof-panel" id="panel-myqcm">
+      <div class="form-title"><div class="ftitle-icon"><i class="fas fa-list"></i></div>Mes QCM enregistrés</div>
+      <div class="myqcm-toolbar">
+        <button class="btn btn-primary" style="flex:none;padding:9px 18px" onclick="loadMyQCMs()"><i class="fas fa-sync-alt"></i> Actualiser</button>
+        <span style="color:#888;font-size:.88em" id="qcmCount"></span>
+      </div>
+      <div id="qcmCardsGrid" class="qcm-cards-grid">
+        <div class="empty-state"><i class="fas fa-inbox"></i><p>Aucun QCM enregistré.<br>Créez votre premier QCM dans l'onglet <strong>Créer QCM</strong>.</p></div>
+      </div>
+    </div>
+
+    <!-- ── PANEL : RÉSULTATS ── -->
+    <div class="prof-panel" id="panel-results">
+      <div class="form-title"><div class="ftitle-icon"><i class="fas fa-chart-bar"></i></div>Résultats des étudiants</div>
+      <div class="results-toolbar">
+        <select id="filterQcm" onchange="loadResults(this.value)">
+          <option value="all">— Tous les QCM —</option>
+        </select>
+        <button class="btn btn-secondary" style="flex:none;padding:9px 16px" onclick="loadResults(document.getElementById('filterQcm').value)"><i class="fas fa-sync-alt"></i></button>
+        <button class="btn btn-success" style="flex:none;padding:9px 16px" onclick="exportCurrentCSV()"><i class="fas fa-download"></i> Exporter CSV</button>
+      </div>
+      <div id="resultsTableContainer">
+        <div class="empty-state"><i class="fas fa-chart-bar"></i><p>Aucun résultat disponible.<br>Configurez Google Sheets dans l'onglet <strong>Config</strong>.</p></div>
+      </div>
+    </div>
+
+    <!-- ── PANEL : CONFIG ── -->
+    <div class="prof-panel" id="panel-config">
+      <div class="form-title"><div class="ftitle-icon"><i class="fas fa-cog"></i></div>Configuration</div>
+
+      <div class="setup-step">
+        <div class="setup-step-num">Étape 1 — Google Apps Script</div>
+        <h4>Déployer le backend Google Sheets</h4>
+        <p>1. Ouvrez votre Google Sheet → <strong>Extensions → Apps Script</strong><br>
+           2. Collez le contenu du fichier <code>qcm-apps-script.gs</code><br>
+           3. Cliquez <strong>Déployer → Nouveau déploiement</strong> (type : Application Web, accès : Tout le monde)<br>
+           4. Copiez l'URL générée ci-dessous</p>
+      </div>
+
+      <div class="config-row">
+        <div class="form-group">
+          <label>URL de l'Apps Script <span class="required">*</span></label>
+          <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec"/>
+        </div>
+        <button class="btn btn-primary" style="flex:none;padding:12px 18px;align-self:flex-end;margin-bottom:0" onclick="saveAndTestUrl()"><i class="fas fa-plug"></i> Connecter</button>
+      </div>
+      <div class="conn-status" id="connStatus"></div>
+
+      <div class="setup-step" style="margin-top:20px">
+        <div class="setup-step-num">Étape 2 — Clé API OpenAI</div>
+        <h4>Clé déjà configurée</h4>
+        <p>La clé API est pré-remplie. Pour la modifier :</p>
+      </div>
+      <div class="form-group">
+        <div class="api-key-wrap">
+          <input type="password" id="configApiKey" placeholder="sk-..."/>
+          <button class="toggle-key" onclick="toggleConfigApiVis()"><i class="fas fa-eye" id="configEyeIcon"></i></button>
+        </div>
+        <button class="btn btn-primary" style="flex:none;width:auto;padding:9px 18px;margin-top:10px" onclick="saveApiKey()"><i class="fas fa-save"></i> Sauvegarder la clé</button>
+      </div>
+    </div>
+
+  </div><!-- /form-container -->
+</div><!-- /profSection -->
+
+<!-- ═══════════════════════════════════════════════════════ STUDENT SECTION -->
+<div id="studentSection" style="display:none">
+
+  <!-- EN-TÊTE OFFICIEL EXAMEN (masqué jusqu'au chargement du QCM) -->
+  <div id="examOfficialHeader" style="display:none;background:#fff;border:2px solid #1E3A5F;border-radius:14px;padding:22px 28px;margin-bottom:18px;text-align:center">
+    <div id="eoh_universite" style="font-size:1.05em;font-weight:700;color:#1E3A5F;letter-spacing:.5px"></div>
+    <div style="border-top:2px solid #1E3A5F;margin:10px 0"></div>
+    <div id="eoh_intitule" style="font-size:1.2em;font-weight:800;color:#1E3A5F;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px"></div>
+    <div id="eoh_matiere" style="font-size:1em;color:#555;margin-bottom:8px"></div>
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.9em;color:#444;margin-top:8px">
+      <span><strong>Enseignant :</strong> <span id="eoh_prof"></span></span>
+      <span><strong>Niveau :</strong> <span id="eoh_niveau"></span></span>
+      <span><strong>Durée :</strong> <span id="eoh_duree"></span> min</span>
+      <span><strong>Date :</strong> <span id="eoh_date"></span></span>
+    </div>
+  </div>
+
+  <div class="progress-container">
+    <div class="progress-steps">
+      <div class="step active" id="sp0"><div class="step-circle"><i class="fas fa-info-circle"></i></div><div class="step-label">Règles</div></div>
+      <div class="step" id="sp1"><div class="step-circle"><i class="fas fa-id-card"></i></div><div class="step-label">Identité</div></div>
+      <div class="step" id="sp2"><div class="step-circle"><i class="fas fa-question-circle"></i></div><div class="step-label">QCM</div></div>
+      <div class="step" id="sp3"><div class="step-circle"><i class="fas fa-chart-bar"></i></div><div class="step-label">Résultats</div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="stuFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="form-container">
+
+    <!-- Step 0: Règles -->
+    <div class="form-step active" id="stu-step-0">
+      <div class="form-title"><div class="ftitle-icon"><i class="fas fa-info-circle"></i></div>Informations &amp; Règles de l'examen</div>
+      <div id="qcmInfoBanner" class="qcm-info-banner">
+        <div class="qib-stat"><div class="val" id="ib_questions">—</div><div class="lbl">Questions</div></div>
+        <div class="qib-stat"><div class="val" id="ib_duree">—</div><div class="lbl">Minutes</div></div>
+        <div class="qib-stat"><div class="val" id="ib_niveau">—</div><div class="lbl">Niveau</div></div>
+        <div class="qib-stat"><div class="val" id="ib_matiere" style="font-size:1em;padding-top:8px">—</div><div class="lbl">Matière</div></div>
+      </div>
+      <div class="rules-card">
+        <h3><i class="fas fa-gavel" style="color:var(--primary)"></i> Règles du jeu</h3>
+        <div class="rule-item"><i class="fas fa-clock"></i><span>Le chronomètre démarre dès que vous cliquez <strong>"Commencer"</strong>. Une fois le temps écoulé, l'examen se verrouille et est soumis automatiquement.</span></div>
+        <div class="rule-item"><i class="fas fa-lock"></i><span>Une fois soumis, vous ne pouvez plus modifier vos réponses. Assurez-vous d'avoir répondu à toutes les questions avant de soumettre.</span></div>
+        <div class="rule-item"><i class="fas fa-list-ol"></i><span>Chaque question a <strong>4 choix</strong> (A, B, C, D). Sélectionnez une réponse dans la liste déroulante de chaque question.</span></div>
+        <div class="rule-item"><i class="fas fa-eye-slash"></i><span>La correction n'est visible qu'après que le professeur l'ait activée. Vous recevrez votre résultat à ce moment-là.</span></div>
+        <div class="rule-item"><i class="fas fa-user-shield"></i><span>Travaillez de manière individuelle et honnête. Ce formulaire enregistre vos informations d'identification.</span></div>
+      </div>
+      <div class="accept-row">
+        <input type="checkbox" id="acceptRules" onchange="updateStartBtn()">
+        <label for="acceptRules">J'ai lu et j'accepte les règles de l'examen. Je m'engage à répondre honnêtement.</label>
+      </div>
+      <div class="form-buttons">
+        <button class="btn btn-primary" id="btnStartQCM" onclick="goToStuStep(1)" disabled><i class="fas fa-arrow-right"></i> Continuer vers l'identification</button>
+      </div>
+    </div>
+
+    <!-- Step 1: Identité -->
+    <div class="form-step" id="stu-step-1">
+      <div class="form-title"><div class="ftitle-icon"><i class="fas fa-id-card"></i></div>Identification de l'étudiant</div>
+      <div id="codeInputSection">
+        <div class="code-input-box">
+          <label style="display:block;font-weight:600;color:#333;margin-bottom:9px"><i class="fas fa-key" style="color:var(--primary)"></i> Code QCM fourni par le professeur</label>
+          <textarea id="qcmCodeInput" placeholder="Collez le code QCM ici..."></textarea>
+          <button class="btn btn-primary" style="flex:none;width:auto;padding:9px 20px;margin-top:10px" onclick="loadQcmFromCode()"><i class="fas fa-check"></i> Charger le QCM</button>
+        </div>
+      </div>
+      <div id="qcmLoadedBanner" style="display:none" class="info-box success">
+        <p><strong>📋 QCM chargé :</strong> <span id="loadedTitle"></span></p>
+        <p><strong>Questions :</strong> <span id="loadedCount"></span> &nbsp;|&nbsp; <strong>Durée :</strong> <span id="loadedDuree"></span> min &nbsp;|&nbsp; <span class="qcm-num-badge" id="loadedNum"></span></p>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Nom <span class="required">*</span></label><input type="text" id="s_nom" placeholder="Nom de famille"/></div>
+        <div class="form-group"><label>Prénom <span class="required">*</span></label><input type="text" id="s_prenom" placeholder="Prénom"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Matricule <span class="required">*</span></label><input type="text" id="s_matricule" placeholder="ex : 2024-L3-0042"/></div>
+        <div class="form-group"><label>Classe / Niveau <span class="required">*</span></label>
+          <select id="s_niveau">
+            <option value="">— Choisir —</option>
+            <option value="L3">Licence 3 (L3)</option>
+            <option value="M1">Master 1 (M1)</option>
+            <option value="M2">Master 2 (M2)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Email <span class="required">*</span></label><input type="email" id="s_email" placeholder="votre.email@universite.sn"/></div>
+      <div class="form-buttons">
+        <button class="btn btn-secondary" onclick="goToStuStep(0)"><i class="fas fa-arrow-left"></i> Retour</button>
+        <button class="btn btn-primary" onclick="startQCM()"><i class="fas fa-play"></i> Commencer l'examen</button>
+      </div>
+    </div>
+
+    <!-- Step 2: QCM -->
+    <div class="form-step" id="stu-step-2">
+      <div class="exam-locked-banner" id="lockedBanner">
+        <i class="fas fa-lock"></i>
+        <div><strong>Temps écoulé — Examen verrouillé</strong><br><small>Vos réponses ont été soumises automatiquement.</small></div>
+      </div>
+      <div class="timer-bar">
+        <div class="timer-left">
+          <i class="fas fa-clock" style="color:var(--primary)"></i>
+          <span>Temps restant :</span>
+          <span class="timer-count" id="timerDisplay">--:--</span>
+        </div>
+        <div class="answers-progress">
+          <i class="fas fa-tasks" style="color:var(--primary)"></i>
+          <span id="answeredCount">0</span>/<span id="totalCount">0</span> réponses
+        </div>
+      </div>
+      <div class="form-title" style="margin-bottom:18px">
+        <div class="ftitle-icon"><i class="fas fa-question-circle"></i></div>
+        <div><div id="stuQcmTitle"></div><small style="font-size:.55em;color:#aaa;font-weight:400" id="stuQcmInfo"></small></div>
+      </div>
+      <div id="questionsContainer"></div>
+      <div class="form-buttons" id="submitRow">
+        <button class="btn btn-success" onclick="submitQCM(false)"><i class="fas fa-paper-plane"></i> Soumettre mes réponses</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Résultats / Attente -->
+    <div class="form-step" id="stu-step-3">
+      <!-- WAITING (correction non activée) -->
+      <div id="waitingBox" class="waiting-box" style="display:none">
+        <div class="waiting-icon"><i class="fas fa-hourglass-half"></i></div>
+        <h2>Examen soumis avec succès !</h2>
+        <p>Votre copie a bien été enregistrée.<br>La correction sera disponible dès que votre professeur l'aura activée.<br><br>Vous pouvez fermer cette fenêtre.</p>
+        <div style="margin-top:20px;background:#f9f9f9;border-radius:12px;padding:16px;text-align:left;max-width:400px;margin-left:auto;margin-right:auto">
+          <div class="result-row"><span class="label">Étudiant</span><span class="value" id="wait_nom"></span></div>
+          <div class="result-row"><span class="label">Matricule</span><span class="value" id="wait_mat"></span></div>
+          <div class="result-row"><span class="label">QCM</span><span class="value" id="wait_qcm"></span></div>
+          <div class="result-row" style="border:none"><span class="label">Questions répondues</span><span class="value" id="wait_ans"></span></div>
+        </div>
+      </div>
+      <!-- RESULTS (correction activée) -->
+      <div id="resultsBox" class="results-card" style="display:none">
+        <div class="score-circle"><span class="score-num" id="scoreNum">0/0</span><span class="score-label">Score</span></div>
+        <div class="score-mention" id="scoreMention"></div>
+        <p id="scoreSubtext" style="color:#888;margin-bottom:18px"></p>
+        <div class="result-details">
+          <div class="result-row"><span class="label"><i class="fas fa-user" style="color:var(--primary)"></i> Étudiant</span><span class="value" id="res_nom"></span></div>
+          <div class="result-row"><span class="label"><i class="fas fa-id-badge" style="color:var(--primary)"></i> Matricule</span><span class="value" id="res_mat"></span></div>
+          <div class="result-row"><span class="label"><i class="fas fa-graduation-cap" style="color:var(--primary)"></i> Niveau</span><span class="value" id="res_niv"></span></div>
+          <div class="result-row"><span class="label"><i class="fas fa-book" style="color:var(--primary)"></i> Matière</span><span class="value" id="res_mat2"></span></div>
+          <div class="result-row"><span class="label"><i class="fas fa-check-circle" style="color:#2ECC71"></i> Bonnes</span><span class="value" id="res_bon" style="color:#2ECC71"></span></div>
+          <div class="result-row"><span class="label"><i class="fas fa-times-circle" style="color:#E74C3C"></i> Mauvaises</span><span class="value" id="res_mauv" style="color:#E74C3C"></span></div>
+          <div class="result-row"><span class="label"><i class="fas fa-minus-circle" style="color:#F59F00"></i> Sans réponse</span><span class="value" id="res_sans" style="color:#F59F00"></span></div>
+          <div class="result-row"><span class="label"><i class="fas fa-clock" style="color:var(--primary)"></i> Temps</span><span class="value" id="res_temps"></span></div>
+        </div>
+        <h3 style="text-align:left;margin-bottom:13px;color:#333;font-size:.97em"><i class="fas fa-list-check" style="color:var(--primary)"></i> Correction détaillée</h3>
+        <div id="correctionDetails"></div>
+      </div>
+    </div>
+
+  </div><!-- /form-container -->
+</div><!-- /studentSection -->
+
+</div><!-- /container -->
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Traitement...</div>
+  <div class="loading-steps" id="loadingSteps"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><i id="toastIcon" class="fas fa-info-circle"></i><span id="toastMsg"></span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// CONSTANTES & STATE
+// ═══════════════════════════════════════════════════════════════════════════
+const DEFAULT_API_KEY = '';
+const LS = { URL:'qcm_script_url', LIST:'qcm_saved_list', DATA:'qcm_full_data', CTR:'qcm_counter', KEY:'qcm_api_key', SUBS:'qcm_submissions' };
+
+let selectedNbQ = 10;
+let uploadedFile = null;
+let generatedQCM = null;
+let studentData  = {};
+let studentAnswers = {};
+let timerInterval = null;
+let timerSeconds  = 0;
+let qcmStartTime  = null;
+let examLocked    = false;
+let lastNotes     = [];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof pdfjsLib !== 'undefined')
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  // Pre-fill API key
+  const savedKey = localStorage.getItem(LS.KEY) || DEFAULT_API_KEY;
+  document.getElementById('apiKey').value = savedKey;
+  document.getElementById('configApiKey').value = savedKey;
+
+  // Pré-remplir date examen avec aujourd'hui
+  document.getElementById('date_examen').value = new Date().toISOString().split('T')[0];
+
+  // Migration : récupérer les QCM complets depuis l'ancien format code_qcm base64 → LS.DATA
+  (function migrateFullData() {
+    const fullData = JSON.parse(localStorage.getItem(LS.DATA) || '{}');
+    let migrated = 0;
+    getSavedList().forEach(meta => {
+      if (!fullData[meta.qcm_id] && meta.code_qcm && meta.code_qcm.length > 30) {
+        try {
+          fullData[meta.qcm_id] = decodeQCM(meta.code_qcm);
+          migrated++;
+        } catch {}
+      }
+    });
+    if (migrated > 0) {
+      localStorage.setItem(LS.DATA, JSON.stringify(fullData));
+      console.log('[QCM] Migration : ' + migrated + ' QCM(s) transférés vers LS.DATA');
+    }
+  })();
+
+  // Restaurer en-tête prof depuis localStorage
+  ['universite','prof_nom','intitule_examen'].forEach(k => {
+    const v = localStorage.getItem('qcm_hdr_' + k);
+    if (v) document.getElementById(k).value = v;
+  });
+  ['universite','prof_nom','intitule_examen'].forEach(k => {
+    document.getElementById(k).addEventListener('change', () =>
+      localStorage.setItem('qcm_hdr_' + k, document.getElementById(k).value));
+  });
+
+  // Pre-fill Apps Script URL
+  const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRtrDgr3gXqWdezz1j2z9YS05PWfRMCuByGdAWTcXOlc0Sy1t_kRlrBut8IRsYa6vf/exec';
+  // Forcer la mise à jour si l'ancienne URL est encore stockée
+  const storedUrl = localStorage.getItem(LS.URL);
+  const savedUrl = (!storedUrl || storedUrl.includes('AKfycbwg')) ? DEFAULT_SCRIPT_URL : storedUrl;
+  localStorage.setItem(LS.URL, savedUrl);
+  document.getElementById('appsScriptUrl').value = savedUrl;
+
+  // File drag & drop
+  const zone = document.getElementById('fileZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]); });
+
+  checkUrlHash();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODE & TAB NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════════
+function setMode(mode) {
+  const isProf = mode === 'prof';
+  document.getElementById('profSection').style.display   = isProf ? '' : 'none';
+  document.getElementById('studentSection').style.display = isProf ? 'none' : '';
+  document.getElementById('tabProf').classList.toggle('active', isProf);
+  document.getElementById('tabStu').classList.toggle('active', !isProf);
+  // Masquer le branding IA en mode étudiant
+  document.getElementById('mainAppHeader').style.display = isProf ? '' : 'none';
+  if (!isProf && !setMode._fromHash) checkUrlHash();
+}
+
+function setProfTab(tab) {
+  ['create','myqcm','results','config'].forEach(t => {
+    document.getElementById('panel-' + t).classList.toggle('active', t === tab);
+    document.getElementById('snav-' + t).classList.toggle('active', t === tab);
+  });
+  document.getElementById('createProgress').style.display = tab === 'create' ? '' : 'none';
+  if (tab === 'myqcm')   loadMyQCMs();
+  if (tab === 'results') { loadResults('all'); populateQcmFilter(); }
+}
+
+function goToCreateStep(n) {
+  document.querySelectorAll('#panel-create .form-step').forEach(el => el.classList.remove('active'));
+  document.getElementById('create-step-' + n).classList.add('active');
+  const steps = [null,'cp1',null,'cp3'];
+  ['cp1','cp2','cp3'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','completed');
+    if (i+1 < n) el.classList.add('completed');
+    if (id === steps[n]) el.classList.add('active');
+  });
+  const fills = {1:'0%', 3:'100%'};
+  document.getElementById('createFill').style.width = fills[n] || '0%';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FILE HANDLING
+// ═══════════════════════════════════════════════════════════════════════════
+function handleFileSelect(e) { if (e.target.files[0]) setFile(e.target.files[0]); }
+function setFile(file) {
+  if (file.size > 10*1024*1024) { showToast('Fichier trop volumineux (max 10 MB)', 'error'); return; }
+  uploadedFile = file;
+  const zone = document.getElementById('fileZone');
+  zone.classList.add('has-file');
+  zone.querySelector('.file-icon').innerHTML = '<i class="fas fa-file-check"></i>';
+  zone.querySelector('.file-text').textContent = '✅ Fichier prêt';
+  const d = document.getElementById('fileNameDisplay'); d.classList.add('show');
+  document.getElementById('fileNameText').textContent = file.name;
+  document.getElementById('fileSizeText').textContent = fmtSize(file.size);
+}
+function fmtSize(b) { return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB'; }
+
+async function extractText(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'txt') return readText(file);
+  if (ext === 'pdf') {
+    const ab = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data:ab}).promise;
+    let t = '';
+    for (let i=1;i<=pdf.numPages;i++) {
+      const pg = await pdf.getPage(i);
+      const c  = await pg.getTextContent();
+      t += c.items.map(x=>x.str).join(' ') + '\n';
+    }
+    return t;
+  }
+  if (ext === 'docx' || ext === 'doc') {
+    const ab = await file.arrayBuffer();
+    const r  = await mammoth.extractRawText({arrayBuffer:ab});
+    return r.value;
+  }
+  throw new Error('Format non supporté. Utilisez PDF, TXT ou DOCX.');
+}
+function readText(file) {
+  return new Promise((res,rej) => { const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsText(file,'UTF-8'); });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QCM GENERATION
+// ═══════════════════════════════════════════════════════════════════════════
+function selectNbQ(n, el) {
+  selectedNbQ = n;
+  document.querySelectorAll('.config-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function startGeneration() {
+  const matiere = document.getElementById('matiere').value.trim();
+  const niveau  = document.getElementById('niveau').value;
+  const apiKey  = document.getElementById('apiKey').value.trim() || localStorage.getItem(LS.KEY) || DEFAULT_API_KEY;
+  const duree   = parseInt(document.getElementById('duree').value) || 20;
+  const langue  = document.getElementById('langueQCM').value;
+
+  if (!matiere)      { showToast('Veuillez saisir la matière', 'error'); return; }
+  if (!niveau)       { showToast('Veuillez choisir le niveau', 'error'); return; }
+  if (!uploadedFile) { showToast('Veuillez uploader un document', 'error'); return; }
+  if (!apiKey.startsWith('sk-')) { showToast('Clé API invalide', 'error'); return; }
+
+  showLoading('Lecture du document…');
+  try {
+    updateLoadingStep('📄 Extraction du texte…');
+    const raw = await extractText(uploadedFile);
+    if (!raw || raw.trim().length < 100) throw new Error('Document trop court ou vide (min 100 caractères)');
+    const text = raw.trim().substring(0, 13000);
+
+    updateLoadingStep('🤖 Génération des questions par l\'IA (15-30s)…');
+    const prompt = buildPrompt(text, matiere, niveau, selectedNbQ, langue);
+    const aiResp = await callOpenAI(apiKey, prompt);
+
+    updateLoadingStep('✅ Traitement de la réponse…');
+    const jsonStr = (aiResp.match(/\{[\s\S]*\}/) || [])[0];
+    if (!jsonStr) throw new Error('Réponse IA mal formatée, réessayez');
+    const parsed = JSON.parse(jsonStr);
+    if (!Array.isArray(parsed.questions)) throw new Error('Structure JSON invalide');
+
+    // Build QCM object
+    const qcmId  = 'QCM_' + Date.now();
+    const numero = nextQCMNumber();
+    const universite      = document.getElementById('universite').value.trim();
+    const profNom         = document.getElementById('prof_nom').value.trim();
+    const intituleExamen  = document.getElementById('intitule_examen').value.trim();
+    const dateExamen      = document.getElementById('date_examen').value;
+    const dateDebut       = document.getElementById('date_debut').value;
+    const dateFin         = document.getElementById('date_fin').value;
+    generatedQCM = {
+      meta: { qcm_id:qcmId, numero, titre:matiere, matiere, niveau, nb_questions:parsed.questions.length, duree_minutes:duree, langue, created_at:new Date().toLocaleDateString('fr-FR'), share_url:'', universite, prof_nom:profNom, intitule_examen:intituleExamen, date_examen:dateExamen, date_debut:dateDebut, date_fin:dateFin },
+      questions: parsed.questions
+    };
+
+    // Code court = numéro (ex: QCM-001), URL courte
+    const code = numero;
+    const url  = window.location.href.split('#')[0] + '#qcm=' + encodeURIComponent(numero);
+    generatedQCM.meta.share_url = url;
+
+    hideLoading();
+    renderPreview(generatedQCM, code, url);
+    goToCreateStep(3);
+
+    // Save (local + Sheets)
+    saveQCMLocal(generatedQCM, code);
+    saveQCMToSheets(generatedQCM, code);
+
+    showToast(parsed.questions.length + ' questions générées ! Numéro : ' + numero, 'success');
+  } catch(e) {
+    hideLoading();
+    showToast('Erreur : ' + e.message, 'error');
+  }
+}
+
+function buildPrompt(text, matiere, niveau, nbQ, langue) {
+  return `Tu es un expert en pédagogie universitaire. À partir du texte sur "${matiere}" (niveau ${niveau}), génère exactement ${nbQ} questions QCM en ${langue}.
+
+RÈGLES :
+- 4 choix par question (A, B, C, D), une seule bonne réponse
+- Questions couvrant les points clés, difficulté niveau ${niveau}
+- Distracteurs plausibles
+- Explication courte (1-2 phrases) pour la bonne réponse
+- Varier : définition, compréhension, application, analyse
+
+Réponds UNIQUEMENT avec ce JSON valide :
+{"questions":[{"id":1,"question":"?","choix":{"A":"...","B":"...","C":"...","D":"..."},"bonne_reponse":"B","explication":"..."}]}
+
+TEXTE SOURCE :
+${text}`;
+}
+
+async function callOpenAI(apiKey, prompt) {
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+    body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],temperature:.4,max_tokens:4000})
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(()=>({}));
+    if (r.status===401) throw new Error('Clé API invalide ou expirée');
+    if (r.status===429) throw new Error('Limite API atteinte, réessayez dans quelques instants');
+    throw new Error(e.error?.message || 'Erreur OpenAI HTTP ' + r.status);
+  }
+  return (await r.json()).choices[0].message.content;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QCM NUMBERING & LOCAL STORAGE
+// ═══════════════════════════════════════════════════════════════════════════
+function nextQCMNumber() {
+  const n = parseInt(localStorage.getItem(LS.CTR) || '0') + 1;
+  localStorage.setItem(LS.CTR, n);
+  return 'QCM-' + String(n).padStart(3, '0');
+}
+
+function getSavedList() {
+  try { return JSON.parse(localStorage.getItem(LS.LIST) || '[]'); }
+  catch { return []; }
+}
+
+function saveQCMLocal(qcm, code) {
+  // Stocker le QCM complet (avec questions) pour le fallback offline
+  const fullData = JSON.parse(localStorage.getItem(LS.DATA) || '{}');
+  fullData[qcm.meta.qcm_id] = qcm;
+  localStorage.setItem(LS.DATA, JSON.stringify(fullData));
+
+  const list = getSavedList();
+  list.unshift({
+    qcm_id: qcm.meta.qcm_id,
+    numero: qcm.meta.numero,
+    titre: qcm.meta.titre,
+    matiere: qcm.meta.matiere,
+    niveau: qcm.meta.niveau,
+    nb_questions: qcm.meta.nb_questions,
+    duree_minutes: qcm.meta.duree_minutes,
+    date_creation: qcm.meta.created_at,
+    correction_active: false,
+    allow_retry: false,
+    nb_soumissions: 0,
+    code_qcm: code,
+    share_url: qcm.meta.share_url,
+    date_debut: qcm.meta.date_debut || '',
+    date_fin: qcm.meta.date_fin || ''
+  });
+  localStorage.setItem(LS.LIST, JSON.stringify(list.slice(0, 100)));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QCM CODE ENCODE / DECODE
+// ═══════════════════════════════════════════════════════════════════════════
+function encodeQCM(qcm) { return btoa(unescape(encodeURIComponent(JSON.stringify(qcm)))); }
+function decodeQCM(code) { return JSON.parse(decodeURIComponent(escape(atob(code)))); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PREVIEW (prof, après génération)
+// ═══════════════════════════════════════════════════════════════════════════
+function renderPreview(qcm, code, url) {
+  document.getElementById('previewTitle').textContent   = qcm.meta.titre;
+  document.getElementById('previewCount').textContent   = qcm.questions.length;
+  document.getElementById('previewNiveau').textContent  = qcm.meta.niveau;
+  document.getElementById('previewDuree').textContent   = qcm.meta.duree_minutes;
+  document.getElementById('shareUrl').value = url;
+  document.getElementById('codeDisplay').textContent    = code;
+  window._shareCode = code;
+  window._shareUrl  = url;
+
+  document.getElementById('qcmPreview').innerHTML = qcm.questions.map((q,i) => `
+    <div class="question-preview">
+      <div class="q-num">Question ${q.id||i+1}</div>
+      <div class="q-text">${escH(q.question)}</div>
+      <div class="choices-preview">
+        ${Object.entries(q.choix).map(([l,t]) => `
+          <div class="choice-preview ${l===q.bonne_reponse?'correct':''}">
+            <span class="choice-letter">${l}</span><span>${escH(t)}</span>
+            ${l===q.bonne_reponse?'<i class="fas fa-check" style="margin-left:auto;font-size:.72em"></i>':''}
+          </div>`).join('')}
+      </div>
+      ${q.explication?`<div class="explication-preview"><i class="fas fa-lightbulb"></i> <strong>Explication :</strong> ${escH(q.explication)}</div>`:''}
+    </div>`).join('');
+}
+
+function copyShareUrl() { copyClip(window._shareUrl, 'Lien copié !'); }
+function copyCode()     { copyClip(window._shareCode, 'Code QCM copié !'); }
+function copyClip(text, msg) {
+  navigator.clipboard.writeText(text).then(()=>showToast(msg,'success')).catch(()=>{
+    const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast(msg,'success');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GOOGLE SHEETS — APPS SCRIPT
+// ═══════════════════════════════════════════════════════════════════════════
+function getScriptUrl() { return localStorage.getItem(LS.URL) || ''; }
+
+// Toujours utiliser le proxy Vercel (évite CORS avec Apps Script)
+function getProxyUrl() {
+  return '/api/sheets';
+}
+
+function fetchWithTimeout(resource, options = {}, ms = 8000) {
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), ms);
+  return fetch(resource, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(tid));
+}
+
+async function callSheets(action, payload) {
+  const url = getProxyUrl();
+  if (!url) return null;
+  try {
+    const body = new URLSearchParams({ data: JSON.stringify({ action, payload }) });
+    const r = await fetchWithTimeout(url, { method:'POST', body });
+    return await r.json();
+  } catch { return null; }
+}
+
+async function callSheetsGet(params) {
+  const url = getProxyUrl();
+  if (!url) return null;
+  try {
+    const q = new URLSearchParams(params);
+    const r = await fetchWithTimeout(url + '?' + q);
+    return await r.json();
+  } catch { return null; }
+}
+
+async function saveQCMToSheets(qcm, code) {
+  const res = await callSheets('saveQCM', {
+    qcm_id: qcm.meta.qcm_id, numero: qcm.meta.numero,
+    titre: qcm.meta.titre, matiere: qcm.meta.matiere,
+    niveau: qcm.meta.niveau, nb_questions: qcm.meta.nb_questions,
+    duree_minutes: qcm.meta.duree_minutes, langue: qcm.meta.langue,
+    share_url: qcm.meta.share_url, code_qcm: encodeQCM(qcm),
+    date_debut: qcm.meta.date_debut || '', date_fin: qcm.meta.date_fin || ''
+  });
+  if (res?.success) {
+    document.getElementById('savedBadgeRow').style.display = '';
+    document.getElementById('savedNumBadge').textContent   = qcm.meta.numero;
+  }
+}
+
+async function saveStudentToSheets(student, qcm) {
+  await callSheets('saveStudent', {
+    qcm_id: qcm.meta.qcm_id, titre_qcm: qcm.meta.titre,
+    nom: student.nom, prenom: student.prenom,
+    matricule: student.matricule, classe: student.niveau, email: student.email
+  });
+}
+
+async function saveNoteToSheets(payload) {
+  await callSheets('saveNote', payload);
+}
+
+async function toggleCorrectionSheets(qcm_id, active) {
+  return await callSheets('toggleCorrection', { qcm_id, active });
+}
+
+async function toggleRetrySheets(qcm_id, active) {
+  return await callSheets('toggleRetry', { qcm_id, active });
+}
+
+async function setDateRangeSheets(qcm_id, date_debut, date_fin) {
+  return await callSheets('setDateRange', { qcm_id, date_debut, date_fin });
+}
+
+function fmtDT(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+  catch { return iso; }
+}
+
+// Retourne true si l'étudiant est BLOQUÉ (plage inactive ou déjà soumis)
+async function checkSubmissionStrict(qcm_id, matricule) {
+  const subKey = qcm_id + '_' + matricule.toLowerCase();
+
+  // 1. Contrôle serveur (Apps Script)
+  if (getScriptUrl()) {
+    try {
+      const res = await callSheetsGet({ action: 'checkSubmission', qcm_id, matricule });
+      if (res && !res.error) {
+        if (res.blocked) {
+          if (res.reason === 'not_yet')
+            showToast('Examen non encore disponible. Accessible à partir du ' + fmtDT(res.date_debut) + '.', 'error');
+          else if (res.reason === 'expired')
+            showToast('La période d\'examen est terminée (clôturée le ' + fmtDT(res.date_fin) + ').', 'error');
+          return true;
+        }
+        if (res.submitted && !res.allow_retry) {
+          const dateStr = res.date ? ' (soumis le ' + res.date + ')' : '';
+          showToast('Accès refusé : vous avez déjà soumis cet examen' + dateStr + '.', 'error');
+          return true;
+        }
+        const subs = JSON.parse(localStorage.getItem(LS.SUBS) || '{}');
+        if (res.submitted) subs[subKey] = subs[subKey] || { date: res.date || '' };
+        else delete subs[subKey];
+        localStorage.setItem(LS.SUBS, JSON.stringify(subs));
+        return false;
+      }
+    } catch { /* offline : fallback local */ }
+  }
+
+  // 2. Fallback hors-ligne
+  const qcmMeta = getSavedList().find(q => q.qcm_id === qcm_id) || generatedQCM?.meta || {};
+  const now = new Date();
+  if (qcmMeta.date_debut) {
+    const debut = new Date(qcmMeta.date_debut);
+    if (!isNaN(debut) && now < debut) {
+      showToast('Examen non encore disponible. Accessible à partir du ' + fmtDT(qcmMeta.date_debut) + '.', 'error');
+      return true;
+    }
+  }
+  if (qcmMeta.date_fin) {
+    const fin = new Date(qcmMeta.date_fin);
+    if (!isNaN(fin) && now > fin) {
+      showToast('La période d\'examen est terminée (clôturée le ' + fmtDT(qcmMeta.date_fin) + ').', 'error');
+      return true;
+    }
+  }
+  if (!qcmMeta.allow_retry) {
+    const subs = JSON.parse(localStorage.getItem(LS.SUBS) || '{}');
+    if (subs[subKey]) {
+      showToast('Accès refusé : vous avez déjà soumis cet examen (vérification hors-ligne).', 'error');
+      return true;
+    }
+  }
+  return false;
+}
+
+async function deleteQCMSheets(qcm_id) {
+  return await callSheets('deleteQCM', { qcm_id });
+}
+
+async function checkCorrectionStatus(qcm_id) {
+  if (!getScriptUrl()) return false;
+  const res = await callSheetsGet({ action:'getQCMSettings', qcm_id });
+  return res?.correction_active === true;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MES QCM PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadMyQCMs() {
+  document.getElementById('qcmCardsGrid').innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Chargement…</p></div>';
+
+  let list = [];
+  // Merge local + Sheets (local has priority, Sheets supplements soumissions count)
+  const localList = getSavedList();
+  const res = await callSheetsGet({ action:'getQCMs' });
+  const sheetsList = res?.qcms || [];
+  const sheetsMap = {};
+  sheetsList.forEach(q => sheetsMap[q.qcm_id] = q);
+  const localIds = new Set(localList.map(q => q.qcm_id));
+  // Local items enriched with nb_soumissions from Sheets
+  const merged = localList.map(q => ({...q, nb_soumissions: sheetsMap[q.qcm_id]?.nb_soumissions ?? q.nb_soumissions}));
+  // Add Sheets-only items (e.g. imported from another device)
+  sheetsList.filter(q => !localIds.has(q.qcm_id)).forEach(q => merged.push(q));
+  list = merged;
+
+  document.getElementById('qcmCount').textContent = list.length + ' QCM enregistré' + (list.length>1?'s':'');
+
+  if (!list.length) {
+    document.getElementById('qcmCardsGrid').innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Aucun QCM enregistré.<br>Créez votre premier QCM dans l\'onglet <strong>Créer QCM</strong>.</p></div>';
+    return;
+  }
+  document.getElementById('qcmCardsGrid').innerHTML = list.map(q => buildQCMCard(q)).join('');
+}
+
+function buildQCMCard(q) {
+  const checked = q.correction_active ? 'checked' : '';
+  const statusTxt = q.correction_active ? '<span class="correction-status on">Activée</span>' : '<span class="correction-status off">Désactivée</span>';
+  const retryChecked = q.allow_retry ? 'checked' : '';
+  const retryTxt = q.allow_retry ? '<span class="correction-status on">Autorisée</span>' : '<span class="correction-status off">Interdite</span>';
+  const num = q.numero || q.qcm_id || '—';
+  const shortCode = q.numero || q.qcm_id || '';
+  const shareUrl = shortCode ? window.location.href.split('#')[0] + '#qcm=' + encodeURIComponent(shortCode) : '';
+  const drDebut = q.date_debut ? (typeof q.date_debut === 'string' ? q.date_debut.replace(' ','T').slice(0,16) : '') : '';
+  const drFin   = q.date_fin   ? (typeof q.date_fin   === 'string' ? q.date_fin.replace(' ','T').slice(0,16)   : '') : '';
+  const drLabel = (drDebut || drFin)
+    ? (drDebut ? fmtDT(drDebut) : '…') + ' → ' + (drFin ? fmtDT(drFin) : '…')
+    : 'Aucune restriction';
+  return `
+  <div class="qcm-admin-card" id="card-${q.qcm_id}">
+    <div class="qca-header">
+      <div class="qcm-num-badge">${num}</div>
+      <div class="qca-info">
+        <div class="qca-title">${escH(q.titre || q.matiere)}</div>
+        <div class="qca-meta">
+          <span><i class="fas fa-graduation-cap"></i>${q.niveau}</span>
+          <span><i class="fas fa-list-ol"></i>${q.nb_questions} questions</span>
+          <span><i class="fas fa-clock"></i>${q.duree_minutes} min</span>
+          <span><i class="fas fa-calendar"></i>${q.date_creation||'—'}</span>
+        </div>
+        <div class="qca-stats">
+          <span class="stat-pill"><i class="fas fa-users"></i> ${q.nb_soumissions||0} soumission${(q.nb_soumissions||0)>1?'s':''}</span>
+          ${q.langue?`<span class="stat-pill">${q.langue}</span>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="correction-row">
+      <div class="correction-label"><i class="fas fa-eye" style="color:var(--primary)"></i> Correction visible par les étudiants</div>
+      ${statusTxt}
+      <label class="toggle-switch">
+        <input type="checkbox" ${checked} onchange="handleCorrectionToggle('${q.qcm_id}',this.checked,this)">
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="correction-row">
+      <div class="correction-label"><i class="fas fa-redo" style="color:#e67e22"></i> Re-soumission autorisée</div>
+      ${retryTxt}
+      <label class="toggle-switch">
+        <input type="checkbox" ${retryChecked} onchange="handleRetryToggle('${q.qcm_id}',this.checked,this)">
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="correction-row" id="dr-row-${q.qcm_id}">
+      <div class="correction-label"><i class="fas fa-calendar-check" style="color:#27ae60"></i> Plage d'activation</div>
+      <span style="font-size:.82em;color:#444;flex:1;margin:0 8px">${drLabel}</span>
+      <button class="btn-sm" style="padding:3px 10px;font-size:.78em;background:#f0f4ff;color:#4263EB;border:1px solid #c3cff7" onclick="toggleDateEditor('${q.qcm_id}')"><i class="fas fa-edit"></i> Modifier</button>
+    </div>
+    <div id="dr-editor-${q.qcm_id}" style="display:none;background:#f5f7ff;border-radius:8px;padding:12px 14px;margin:4px 0 8px;border:1px solid #dde3ff">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+        <div>
+          <label style="font-size:.78em;color:#555;display:block;margin-bottom:3px"><i class="fas fa-play-circle" style="color:#27ae60"></i> Début</label>
+          <input type="datetime-local" id="dr-debut-${q.qcm_id}" value="${drDebut}" style="font-size:.85em;padding:5px 8px;border:1px solid #ccc;border-radius:6px">
+        </div>
+        <div>
+          <label style="font-size:.78em;color:#555;display:block;margin-bottom:3px"><i class="fas fa-stop-circle" style="color:#e74c3c"></i> Fin</label>
+          <input type="datetime-local" id="dr-fin-${q.qcm_id}" value="${drFin}" style="font-size:.85em;padding:5px 8px;border:1px solid #ccc;border-radius:6px">
+        </div>
+        <button class="btn btn-primary" style="padding:6px 14px;font-size:.83em;margin-bottom:1px" onclick="saveDateRange('${q.qcm_id}')"><i class="fas fa-save"></i> Enregistrer</button>
+        <button class="btn btn-secondary" style="padding:6px 12px;font-size:.83em;margin-bottom:1px" onclick="toggleDateEditor('${q.qcm_id}')">Annuler</button>
+      </div>
+      <div style="font-size:.75em;color:#888;margin-top:6px"><i class="fas fa-info-circle"></i> Laisser vide = aucune restriction. L'examen sera verrouillé hors de cette plage.</div>
+    </div>
+    <div class="qca-actions">
+      ${q.code_qcm?`<button class="btn-sm btn-copy-link" onclick="copyClip('${shareUrl}','Lien copié !')"><i class="fas fa-link"></i> Copier le lien</button>`:''}
+      ${shortCode?`<button class="btn-sm btn-copy-link" style="background:#f0f0f0;color:#555" onclick="copyClip('${escH(shortCode)}','Code QCM copié !')"><i class="fas fa-code"></i> Copier le code</button>`:''}
+      <button class="btn-sm" style="background:#e8f5e9;color:#27ae60;border:1px solid #a5d6a7" onclick="syncQCMToSheets('${q.qcm_id}',this)"><i class="fas fa-cloud-upload-alt"></i> Sync Sheets</button>
+      <button class="btn-sm btn-view-results" onclick="viewQCMResults('${q.qcm_id}','${escH(q.titre||q.matiere)}')"><i class="fas fa-chart-bar"></i> Résultats</button>
+      <button class="btn-sm btn-delete-qcm" onclick="deleteQCM('${q.qcm_id}')"><i class="fas fa-trash"></i> Supprimer</button>
+    </div>
+  </div>`;
+}
+
+async function handleCorrectionToggle(qcm_id, active, checkbox) {
+  checkbox.disabled = true;
+  // Update local
+  const list = getSavedList();
+  const idx  = list.findIndex(q => q.qcm_id === qcm_id);
+  if (idx >= 0) { list[idx].correction_active = active; localStorage.setItem(LS.LIST, JSON.stringify(list)); }
+  // Update Sheets
+  await toggleCorrectionSheets(qcm_id, active);
+  checkbox.disabled = false;
+  // Update label next to toggle
+  const card = document.getElementById('card-' + qcm_id);
+  if (card) {
+    const statusEl = card.querySelector('.correction-status');
+    if (statusEl) { statusEl.className = 'correction-status ' + (active?'on':'off'); statusEl.textContent = active?'Activée':'Désactivée'; }
+  }
+  showToast('Correction ' + (active ? 'activée' : 'désactivée'), active ? 'success' : 'info');
+}
+
+async function handleRetryToggle(qcm_id, active, checkbox) {
+  checkbox.disabled = true;
+  // Update local
+  const list = getSavedList();
+  const idx  = list.findIndex(q => q.qcm_id === qcm_id);
+  if (idx >= 0) { list[idx].allow_retry = active; localStorage.setItem(LS.LIST, JSON.stringify(list)); }
+  // Effacer l'historique local des soumissions pour ce QCM
+  const subs = JSON.parse(localStorage.getItem(LS.SUBS) || '{}');
+  Object.keys(subs).forEach(k => { if (k.startsWith(qcm_id + '_')) delete subs[k]; });
+  localStorage.setItem(LS.SUBS, JSON.stringify(subs));
+  // Update serveur (Apps Script)
+  await toggleRetrySheets(qcm_id, active);
+  checkbox.disabled = false;
+  // Update label
+  const card = document.getElementById('card-' + qcm_id);
+  if (card) {
+    const statusEls = card.querySelectorAll('.correction-status');
+    const retryEl = statusEls[1]; // 2e toggle = re-soumission
+    if (retryEl) { retryEl.className = 'correction-status ' + (active?'on':'off'); retryEl.textContent = active?'Autorisée':'Interdite'; }
+  }
+  showToast('Re-soumission ' + (active ? 'autorisée' : 'interdite') + ' — enregistré dans Sheets', active ? 'success' : 'info');
+}
+
+function toggleDateEditor(qcm_id) {
+  const ed = document.getElementById('dr-editor-' + qcm_id);
+  if (ed) ed.style.display = ed.style.display === 'none' ? '' : 'none';
+}
+
+async function saveDateRange(qcm_id) {
+  const debut = document.getElementById('dr-debut-' + qcm_id)?.value || '';
+  const fin   = document.getElementById('dr-fin-'   + qcm_id)?.value || '';
+  // Validation
+  if (debut && fin && new Date(debut) >= new Date(fin)) {
+    showToast('La date de fin doit être postérieure à la date de début.', 'error'); return;
+  }
+  // Update local
+  const list = getSavedList();
+  const idx  = list.findIndex(q => q.qcm_id === qcm_id);
+  if (idx >= 0) { list[idx].date_debut = debut; list[idx].date_fin = fin; localStorage.setItem(LS.LIST, JSON.stringify(list)); }
+  // Update serveur
+  await setDateRangeSheets(qcm_id, debut, fin);
+  // Update label in card
+  const row = document.getElementById('dr-row-' + qcm_id);
+  if (row) {
+    const lbl = (debut || fin)
+      ? (debut ? fmtDT(debut) : '…') + ' → ' + (fin ? fmtDT(fin) : '…')
+      : 'Aucune restriction';
+    row.querySelector('span').textContent = lbl;
+  }
+  toggleDateEditor(qcm_id);
+  showToast('Plage d\'activation enregistrée dans Sheets', 'success');
+}
+
+async function syncQCMToSheets(qcm_id, btn) {
+  let qcm = null;
+
+  // 1. Chercher dans LS.DATA (nouveau stockage)
+  const fullData = JSON.parse(localStorage.getItem(LS.DATA) || '{}');
+  if (fullData[qcm_id]) qcm = fullData[qcm_id];
+
+  // 2. Fallback : code_qcm dans LS.LIST (ancien format base64 complet)
+  if (!qcm) {
+    const meta = getSavedList().find(q => q.qcm_id === qcm_id);
+    if (meta?.code_qcm && meta.code_qcm.length > 30) {
+      try { qcm = decodeQCM(meta.code_qcm); } catch {}
+    }
+  }
+
+  if (!qcm) {
+    showToast('Questions introuvables — ce QCM doit être régénéré depuis le document source.', 'error');
+    return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sync…';
+  const res = await callSheets('saveQCM', {
+    qcm_id: qcm.meta.qcm_id, numero: qcm.meta.numero,
+    titre: qcm.meta.titre, matiere: qcm.meta.matiere,
+    niveau: qcm.meta.niveau, nb_questions: qcm.meta.nb_questions,
+    duree_minutes: qcm.meta.duree_minutes, langue: qcm.meta.langue,
+    share_url: qcm.meta.share_url || (window.location.href.split('#')[0] + '#qcm=' + encodeURIComponent(qcm.meta.numero)),
+    code_qcm: encodeQCM(qcm),
+    date_debut: qcm.meta.date_debut || '', date_fin: qcm.meta.date_fin || ''
+  });
+  btn.disabled = false;
+  if (res?.success) {
+    btn.innerHTML = '<i class="fas fa-check"></i> Synchronisé';
+    btn.style.background = '#d4edda';
+    showToast('QCM synchronisé dans Google Sheets ✓', 'success');
+  } else {
+    btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Sync Sheets';
+    showToast('Échec de la synchronisation. Vérifiez la connexion.', 'error');
+  }
+}
+
+async function deleteQCM(qcm_id) {
+  if (!confirm('Supprimer ce QCM de la liste ? (Les résultats dans Sheets ne sont pas supprimés)')) return;
+  // Local
+  const list = getSavedList().filter(q => q.qcm_id !== qcm_id);
+  localStorage.setItem(LS.LIST, JSON.stringify(list));
+  // Sheets
+  await deleteQCMSheets(qcm_id);
+  // Remove card
+  const card = document.getElementById('card-' + qcm_id);
+  if (card) card.remove();
+  showToast('QCM supprimé', 'info');
+}
+
+function viewQCMResults(qcm_id, titre) {
+  setProfTab('results');
+  document.getElementById('filterQcm').value = qcm_id;
+  loadResults(qcm_id);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RÉSULTATS PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+async function populateQcmFilter() {
+  const sel  = document.getElementById('filterQcm');
+  const list = getSavedList();
+  // Keep "all" option
+  while (sel.options.length > 1) sel.remove(1);
+  list.forEach(q => {
+    const opt = new Option(q.numero + ' — ' + q.titre, q.qcm_id);
+    sel.appendChild(opt);
+  });
+}
+
+async function loadResults(qcm_id) {
+  document.getElementById('resultsTableContainer').innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Chargement…</p></div>';
+  const res = await callSheetsGet({ action:'getNotes', qcm_id: qcm_id||'all' });
+  if (!res || !res.notes) {
+    document.getElementById('resultsTableContainer').innerHTML = '<div class="empty-state"><i class="fas fa-plug"></i><p>Google Sheets non configuré ou aucune donnée.<br>Configurez l\'URL dans l\'onglet <strong>Config</strong>.</p></div>';
+    return;
+  }
+  lastNotes = res.notes;
+  renderResultsTable(res.notes);
+}
+
+function renderResultsTable(notes) {
+  if (!notes.length) {
+    document.getElementById('resultsTableContainer').innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Aucun résultat pour ce QCM.</p></div>';
+    return;
+  }
+  const mentionClass = { 'Excellent':'exc','Très Bien':'tb','Bien':'b','Passable':'p','Insuffisant':'ins','Très Insuffisant':'ti' };
+  document.getElementById('resultsTableContainer').innerHTML = `
+    <div class="results-table-wrap">
+      <table class="data-table">
+        <thead><tr>
+          <th>#</th><th>QCM</th><th>Matricule</th><th>Nom</th><th>Prénom</th>
+          <th>Classe</th><th>Score</th><th>%</th><th>Mention</th><th>Temps</th><th>Date</th>
+        </tr></thead>
+        <tbody>${notes.map((n,i) => `<tr>
+          <td>${i+1}</td>
+          <td><small>${escH(n.titre_qcm||'—')}</small></td>
+          <td><strong>${escH(n.matricule)}</strong></td>
+          <td>${escH(n.nom)}</td>
+          <td>${escH(n.prenom)}</td>
+          <td>${escH(n.classe)}</td>
+          <td><strong>${n.score}/${n.total}</strong></td>
+          <td>${n.pourcentage}</td>
+          <td><span class="mention-badge ${mentionClass[n.mention]||''}">${escH(n.mention||'—')}</span></td>
+          <td>${n.temps_utilise||'—'}</td>
+          <td><small>${n.date_soumission||'—'}</small></td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+function exportCurrentCSV() {
+  if (!lastNotes.length) { showToast('Aucun résultat à exporter', 'error'); return; }
+  const headers = ['QCM','Matricule','Nom','Prénom','Email','Classe','Score','Total','%','Bonnes','Mauvaises','Sans réponse','Temps','Date','Mention'];
+  const rows = lastNotes.map(n => [n.titre_qcm,n.matricule,n.nom,n.prenom,n.email,n.classe,n.score,n.total,n.pourcentage,n.bonnes,n.mauvaises,n.sans_reponse,n.temps_utilise,n.date_soumission,n.mention].map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
+  const csv  = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+  const a    = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'resultats_qcm_' + new Date().toLocaleDateString('fr-FR').replace(/\//g,'-') + '.csv';
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIG PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+async function saveAndTestUrl() {
+  const url = document.getElementById('appsScriptUrl').value.trim();
+  if (!url || !url.startsWith('https://script.google.com')) { showToast('URL Apps Script invalide', 'error'); return; }
+  localStorage.setItem(LS.URL, url);
+  const status = document.getElementById('connStatus');
+  status.className = 'conn-status show'; status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Test de connexion…';
+  // Utiliser le proxy local si on est sur localhost
+  const pingUrl = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? '/sheets?action=ping'
+    : url + '?action=ping';
+  try {
+    const r = await fetch(pingUrl);
+    const d = await r.json();
+    if (d.ok) {
+      status.className = 'conn-status show ok'; status.innerHTML = '<i class="fas fa-check-circle"></i> Connecté ! ' + (d.msg||'');
+      showToast('Google Sheets connecté !', 'success');
+    } else throw new Error(d.error || 'Réponse inattendue');
+  } catch(e) {
+    status.className = 'conn-status show fail'; status.innerHTML = '<i class="fas fa-times-circle"></i> Échec : ' + e.message;
+    showToast('Connexion échouée : ' + e.message, 'error');
+  }
+}
+
+function saveApiKey() {
+  const k = document.getElementById('configApiKey').value.trim();
+  if (!k.startsWith('sk-')) { showToast('Clé invalide', 'error'); return; }
+  localStorage.setItem(LS.KEY, k);
+  document.getElementById('apiKey').value = k;
+  showToast('Clé API sauvegardée', 'success');
+}
+
+function toggleApiEdit() {
+  const s = document.getElementById('apiEditSection');
+  const c = document.getElementById('apiConfigured');
+  const show = s.style.display === 'none';
+  s.style.display = show ? 'block' : 'none';
+  c.style.display = show ? 'none'  : 'flex';
+}
+function toggleApiVis() {
+  const i = document.getElementById('apiKey'); const ic = document.getElementById('eyeIcon');
+  if (i.type==='password') { i.type='text'; ic.className='fas fa-eye-slash'; }
+  else { i.type='password'; ic.className='fas fa-eye'; }
+}
+function toggleConfigApiVis() {
+  const i = document.getElementById('configApiKey'); const ic = document.getElementById('configEyeIcon');
+  if (i.type==='password') { i.type='text'; ic.className='fas fa-eye-slash'; }
+  else { i.type='password'; ic.className='fas fa-eye'; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STUDENT — LOAD QCM
+// ═══════════════════════════════════════════════════════════════════════════
+function checkUrlHash() {
+  const h = window.location.hash;
+  if (h && h.startsWith('#qcm=')) {
+    const code = decodeURIComponent(h.substring(5));
+    setMode._fromHash = true;
+    setMode('student');
+    setMode._fromHash = false;
+    loadQcmByCode(code);
+  }
+}
+
+function loadQcmFromCode() {
+  const code = document.getElementById('qcmCodeInput').value.trim();
+  if (!code) { showToast('Veuillez entrer le code QCM (ex: QCM-001)', 'error'); return; }
+  loadQcmByCode(code);
+}
+
+// Charge un QCM par code court (QCM-001) depuis Sheets, ou base64 legacy
+async function loadQcmByCode(code) {
+  const c = code.trim();
+
+  // Code court format QCM-XXX
+  if (/^QCM-\d+$/i.test(c)) {
+    showLoading('Chargement du QCM…');
+
+    // 1. Chercher dans Sheets (cross-device) — retourne le base64 complet
+    const proxyUrl = getProxyUrl();
+    if (proxyUrl) {
+      try {
+        const r = await fetchWithTimeout(proxyUrl + '?action=getQCMByCode&code=' + encodeURIComponent(c));
+        const d = await r.json();
+        if (d.ok && d.code_qcm) {
+          hideLoading();
+          loadQCM(decodeQCM(d.code_qcm));
+          return;
+        }
+      } catch { /* offline */ }
+    }
+
+    // 2. Fallback localStorage — QCM complet dans LS.DATA
+    const fullData = JSON.parse(localStorage.getItem(LS.DATA) || '{}');
+    const savedList = getSavedList();
+    const meta = savedList.find(q => (q.numero || '').toUpperCase() === c.toUpperCase());
+    if (meta && fullData[meta.qcm_id]) {
+      hideLoading();
+      loadQCM(fullData[meta.qcm_id]);
+      return;
+    }
+    // Parcourir LS.DATA directement par numero
+    const byNumero = Object.values(fullData).find(q => q.meta && (q.meta.numero || '').toUpperCase() === c.toUpperCase());
+    if (byNumero) { hideLoading(); loadQCM(byNumero); return; }
+
+    hideLoading();
+    showToast('QCM introuvable : ' + c + '. Vérifiez le code ou la connexion.', 'error');
+    return;
+  }
+
+  // Legacy : base64 complet collé directement
+  try { loadQCM(decodeQCM(c)); }
+  catch { showToast('Code QCM invalide', 'error'); }
+}
+
+function loadQCM(qcm) {
+  generatedQCM = qcm;
+  document.getElementById('codeInputSection').style.display = 'none';
+  document.getElementById('qcmLoadedBanner').style.display = '';
+  document.getElementById('loadedTitle').textContent = qcm.meta.titre + ' — ' + qcm.meta.niveau;
+  document.getElementById('loadedCount').textContent = qcm.questions.length;
+  document.getElementById('loadedDuree').textContent = qcm.meta.duree_minutes;
+  document.getElementById('loadedNum').textContent   = qcm.meta.numero || qcm.meta.qcm_id || '—';
+  // Fill rules banner
+  document.getElementById('ib_questions').textContent = qcm.questions.length;
+  document.getElementById('ib_duree').textContent     = qcm.meta.duree_minutes;
+  document.getElementById('ib_niveau').textContent    = qcm.meta.niveau;
+  document.getElementById('ib_matiere').textContent   = qcm.meta.matiere || qcm.meta.titre;
+  // Populate and show official exam header
+  const m = qcm.meta;
+  document.getElementById('eoh_universite').textContent = m.universite || '';
+  document.getElementById('eoh_intitule').textContent   = m.intitule_examen || (m.titre + ' — Examen');
+  document.getElementById('eoh_matiere').textContent    = 'Matière : ' + (m.matiere || m.titre);
+  document.getElementById('eoh_prof').textContent       = m.prof_nom || '—';
+  document.getElementById('eoh_niveau').textContent     = m.niveau || '—';
+  document.getElementById('eoh_duree').textContent      = m.duree_minutes || '—';
+  const dateDisplay = m.date_examen ? new Date(m.date_examen + 'T12:00:00').toLocaleDateString('fr-FR') : (m.created_at || '—');
+  document.getElementById('eoh_date').textContent = dateDisplay;
+  document.getElementById('examOfficialHeader').style.display = '';
+  showToast('QCM chargé : ' + qcm.questions.length + ' questions (' + (qcm.meta.numero||'') + ')', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STUDENT — STEP NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════════
+function goToStuStep(n) {
+  document.querySelectorAll('#studentSection .form-step').forEach(el => el.classList.remove('active'));
+  document.getElementById('stu-step-' + n).classList.add('active');
+  ['sp0','sp1','sp2','sp3'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','completed');
+    if (i < n) el.classList.add('completed');
+    if (i === n) el.classList.add('active');
+  });
+  const fills = {0:'0%',1:'33%',2:'66%',3:'100%'};
+  document.getElementById('stuFill').style.width = fills[n] || '0%';
+  window.scrollTo(0,0);
+}
+
+function toggleAccept() {
+  const cb = document.getElementById('acceptRules');
+  cb.checked = !cb.checked;
+  updateStartBtn();
+}
+function updateStartBtn() {
+  document.getElementById('btnStartQCM').disabled = !document.getElementById('acceptRules').checked;
+}
+
+async function startQCM() {
+  const nom      = document.getElementById('s_nom').value.trim();
+  const prenom   = document.getElementById('s_prenom').value.trim();
+  const matricule= document.getElementById('s_matricule').value.trim();
+  const niveau   = document.getElementById('s_niveau').value;
+  const email    = document.getElementById('s_email').value.trim();
+
+  if (!nom)        { showToast('Veuillez saisir votre nom', 'error'); return; }
+  if (!prenom)     { showToast('Veuillez saisir votre prénom', 'error'); return; }
+  if (!matricule)  { showToast('Veuillez saisir votre matricule', 'error'); return; }
+  if (!niveau)     { showToast('Veuillez choisir votre niveau', 'error'); return; }
+  if (!email || !email.includes('@')) { showToast('Email invalide', 'error'); return; }
+  if (!generatedQCM) { showToast('Aucun QCM chargé', 'error'); goToStuStep(1); return; }
+
+  // Vérifier si l'étudiant a déjà soumis ce QCM (contrôle strict serveur + fallback local)
+  showLoading('Vérification en cours…');
+  const blocked = await checkSubmissionStrict(generatedQCM.meta.qcm_id, matricule);
+  hideLoading();
+  if (blocked) return; // message déjà affiché par checkSubmissionStrict
+
+  studentData    = { nom, prenom, matricule, niveau, email };
+  studentAnswers = {};
+  examLocked     = false;
+
+  buildQuestions();
+  timerSeconds = (generatedQCM.meta.duree_minutes || 20) * 60;
+  qcmStartTime = Date.now();
+  startTimer();
+  goToStuStep(2);
+
+  // Save student info to Sheets
+  saveStudentToSheets(studentData, generatedQCM);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QCM QUESTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+function buildQuestions() {
+  const qcm = generatedQCM;
+  document.getElementById('stuQcmTitle').textContent = qcm.meta.titre;
+  document.getElementById('stuQcmInfo').textContent  = 'Niveau '+qcm.meta.niveau+' — '+qcm.questions.length+' questions — '+qcm.meta.duree_minutes+' min';
+  document.getElementById('totalCount').textContent  = qcm.questions.length;
+  document.getElementById('answeredCount').textContent = 0;
+
+  document.getElementById('questionsContainer').innerHTML = qcm.questions.map((q,i) => `
+    <div class="question-card" id="qcard-${i}">
+      <div class="q-header">
+        <div class="q-badge">${i+1}</div>
+        <div class="q-text-main">${escH(q.question)}</div>
+      </div>
+      <select class="answer-select" id="ans-${i}" onchange="onAnswer(${i},this.value)">
+        <option value="">— Choisir une réponse —</option>
+        ${Object.entries(q.choix).map(([l,t]) => `<option value="${l}">${l}. ${escH(t)}</option>`).join('')}
+      </select>
+    </div>`).join('');
+}
+
+function onAnswer(idx, val) {
+  if (examLocked) return;
+  if (val) {
+    studentAnswers[idx] = val;
+    document.getElementById('qcard-'+idx).classList.add('answered');
+    document.getElementById('ans-'+idx).classList.add('answered');
+  } else {
+    delete studentAnswers[idx];
+    document.getElementById('qcard-'+idx).classList.remove('answered');
+    document.getElementById('ans-'+idx).classList.remove('answered');
+  }
+  document.getElementById('answeredCount').textContent = Object.keys(studentAnswers).length;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════════════════════════════════
+function startTimer() {
+  clearInterval(timerInterval);
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    updateTimerDisplay();
+    if (timerSeconds <= 0) { clearInterval(timerInterval); lockAndSubmit(); }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const el  = document.getElementById('timerDisplay');
+  const min = Math.floor(Math.max(0,timerSeconds)/60);
+  const sec = Math.max(0,timerSeconds)%60;
+  el.textContent = String(min).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+  el.className = 'timer-count';
+  if (timerSeconds < 300) el.classList.add('warning');
+  if (timerSeconds < 60)  el.classList.add('danger');
+}
+
+function lockAndSubmit() {
+  examLocked = true;
+  document.querySelectorAll('.answer-select').forEach(s => { s.disabled = true; s.classList.add('locked'); });
+  document.querySelectorAll('.question-card').forEach(c => c.classList.add('locked'));
+  document.getElementById('lockedBanner').classList.add('show');
+  document.getElementById('submitRow').style.display = 'none';
+  showToast('Temps écoulé — examen soumis automatiquement', 'info');
+  setTimeout(() => submitQCM(true), 1500);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUBMIT
+// ═══════════════════════════════════════════════════════════════════════════
+async function submitQCM(forced = false) {
+  const answered = Object.keys(studentAnswers).length;
+  const total    = generatedQCM.questions.length;
+  if (!forced && answered < total) {
+    if (!confirm(`Il reste ${total - answered} question(s) sans réponse. Soumettre quand même ?`)) return;
+  }
+  clearInterval(timerInterval);
+
+  const timeUsed = Math.floor((Date.now() - qcmStartTime) / 1000);
+  const min = Math.floor(timeUsed/60), sec = timeUsed%60;
+  const tempStr = min + 'min ' + sec + 's';
+
+  // Compute score
+  let bonnes=0, mauvaises=0, sans=0;
+  generatedQCM.questions.forEach((q,i) => {
+    const g = studentAnswers[i];
+    if (!g) sans++;
+    else if (g === q.bonne_reponse) bonnes++;
+    else mauvaises++;
+  });
+  const pct = Math.round((bonnes/total)*100);
+
+  const notePayload = {
+    qcm_id: generatedQCM.meta.qcm_id, titre_qcm: generatedQCM.meta.titre,
+    matricule: studentData.matricule, nom: studentData.nom,
+    prenom: studentData.prenom, email: studentData.email, classe: studentData.niveau,
+    score: bonnes, total, pourcentage: pct,
+    bonnes, mauvaises, sans_reponse: sans, temps_utilise: tempStr
+  };
+
+  // Save to Sheets
+  showLoading('Enregistrement de vos réponses…');
+  await saveNoteToSheets(notePayload);
+  hideLoading();
+
+  // Marquer la soumission dans localStorage (anti-double-soumission)
+  const subKey = generatedQCM.meta.qcm_id + '_' + studentData.matricule.toLowerCase();
+  const subs = JSON.parse(localStorage.getItem(LS.SUBS) || '{}');
+  subs[subKey] = { date: new Date().toISOString(), nom: studentData.nom, prenom: studentData.prenom };
+  localStorage.setItem(LS.SUBS, JSON.stringify(subs));
+
+  // Check correction status
+  const correctionActive = await checkCorrectionStatus(generatedQCM.meta.qcm_id)
+    || (getSavedList().find(q => q.qcm_id === generatedQCM.meta.qcm_id)?.correction_active ?? false);
+
+  goToStuStep(3);
+
+  if (correctionActive) {
+    showFullResults(bonnes, mauvaises, sans, pct, tempStr, total);
+  } else {
+    showWaiting(answered, total);
+  }
+}
+
+function showWaiting(answered, total) {
+  document.getElementById('waitingBox').style.display  = '';
+  document.getElementById('resultsBox').style.display  = 'none';
+  document.getElementById('wait_nom').textContent  = studentData.prenom + ' ' + studentData.nom.toUpperCase();
+  document.getElementById('wait_mat').textContent  = studentData.matricule;
+  document.getElementById('wait_qcm').textContent  = generatedQCM.meta.titre + ' (' + (generatedQCM.meta.numero||'') + ')';
+  document.getElementById('wait_ans').textContent  = answered + ' / ' + total;
+}
+
+function showFullResults(bonnes, mauvaises, sans, pct, tempStr, total) {
+  document.getElementById('waitingBox').style.display  = 'none';
+  document.getElementById('resultsBox').style.display  = '';
+
+  document.getElementById('scoreNum').textContent = bonnes + '/' + total;
+  let mention, subtext, color;
+  if (pct>=90){mention='🏆 Excellent !';subtext='Performance remarquable !';color='#2ECC71';}
+  else if(pct>=80){mention='🎉 Très Bien';subtext='Très bonne maîtrise.';color='#27AE60';}
+  else if(pct>=70){mention='👍 Bien';subtext='Bonne connaissance générale.';color='#3498DB';}
+  else if(pct>=60){mention='✅ Passable';subtext='Des lacunes à combler.';color='#F39C12';}
+  else if(pct>=50){mention='⚠️ Insuffisant';subtext='Révisions nécessaires.';color='#E67E22';}
+  else{mention='❌ Très Insuffisant';subtext='Révisions approfondies nécessaires.';color='#E74C3C';}
+
+  document.getElementById('scoreMention').textContent = mention;
+  document.getElementById('scoreMention').style.color = color;
+  document.getElementById('scoreSubtext').textContent  = subtext + ' (' + pct + '%)';
+  document.getElementById('res_nom').textContent  = studentData.prenom + ' ' + studentData.nom.toUpperCase();
+  document.getElementById('res_mat').textContent  = studentData.matricule;
+  document.getElementById('res_niv').textContent  = studentData.niveau;
+  document.getElementById('res_mat2').textContent = generatedQCM.meta.titre;
+  document.getElementById('res_bon').textContent  = bonnes + ' / ' + total;
+  document.getElementById('res_mauv').textContent = mauvaises;
+  document.getElementById('res_sans').textContent = sans;
+  document.getElementById('res_temps').textContent= tempStr;
+
+  document.getElementById('correctionDetails').innerHTML = generatedQCM.questions.map((q,i) => {
+    const given = studentAnswers[i], correct = q.bonne_reponse;
+    const cls   = !given ? 'unanswered' : (given===correct ? 'correct' : 'wrong');
+    const icon  = cls==='correct' ? '✅' : (cls==='wrong' ? '❌' : '⚠️');
+    return `<div class="correction-item ${cls}">
+      <div class="correction-q">${icon} Q${i+1}. ${escH(q.question)}</div>
+      <div class="correction-answers">
+        ${given ? `<span class="corr-tag ${given===correct?'given-correct':'given-wrong'}">Votre réponse : ${given}. ${escH(q.choix[given]||'')}</span>` : '<span class="corr-tag" style="background:#FFF9C4;color:#856404">Non répondu</span>'}
+        ${given!==correct ? `<span class="corr-tag correct-answer">Bonne réponse : ${correct}. ${escH(q.choix[correct]||'')}</span>` : ''}
+      </div>
+      ${q.explication?`<div style="margin-top:7px;font-size:.81em;color:#555;background:rgba(255,255,255,.65);padding:6px 9px;border-radius:6px"><i class="fas fa-lightbulb" style="color:#F59F00"></i> ${escH(q.explication)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════════════════
+function showLoading(msg) {
+  document.getElementById('loadingText').textContent  = msg || 'Chargement…';
+  document.getElementById('loadingSteps').textContent = '';
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function updateLoadingStep(s) { document.getElementById('loadingSteps').textContent = s; }
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
+
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast'), ic = document.getElementById('toastIcon');
+  t.className = 'toast show ' + type;
+  document.getElementById('toastMsg').textContent = msg;
+  const icons  = {success:'fas fa-check-circle',error:'fas fa-times-circle',info:'fas fa-info-circle'};
+  const colors = {success:'#2ECC71',error:'#E74C3C',info:'#4263EB'};
+  ic.className = icons[type]||icons.info; ic.style.color = colors[type]||colors.info;
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function escH(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
