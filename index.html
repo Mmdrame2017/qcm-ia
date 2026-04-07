@@ -734,6 +734,8 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);min-height:100vh;pad
 // CONSTANTES & STATE
 // ═══════════════════════════════════════════════════════════════════════════
 const DEFAULT_API_KEY = '';
+// Vrai en production Vercel — la clé est gérée côté serveur
+const IS_PRODUCTION = location.protocol !== 'file:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1';
 const LS = { URL:'qcm_script_url', LIST:'qcm_saved_list', DATA:'qcm_full_data', CTR:'qcm_counter', KEY:'qcm_api_key', SUBS:'qcm_submissions' };
 
 let selectedNbQ = 10;
@@ -754,10 +756,23 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof pdfjsLib !== 'undefined')
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-  // Pre-fill API key
-  const savedKey = localStorage.getItem(LS.KEY) || DEFAULT_API_KEY;
-  document.getElementById('apiKey').value = savedKey;
-  document.getElementById('configApiKey').value = savedKey;
+  // Gestion clé API selon l'environnement
+  if (IS_PRODUCTION) {
+    // Production : clé côté serveur — masquer tous les contrôles de clé
+    const modifyBtn = document.querySelector('#apiConfigured button');
+    if (modifyBtn) modifyBtn.style.display = 'none';
+    const configKeySection = document.getElementById('configApiKey')?.closest('.form-group');
+    if (configKeySection) configKeySection.innerHTML =
+      '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#EBFBEE;border:2px solid #2ECC71;border-radius:11px">' +
+      '<i class="fas fa-shield-alt" style="color:#2ECC71;font-size:1.1em"></i>' +
+      '<span style="color:#1a7a45;font-weight:600;font-size:.93em">🔒 Clé API gérée côté serveur — invisible et sécurisée</span>' +
+      '</div>';
+  } else {
+    // Local : pré-remplir depuis localStorage
+    const savedKey = localStorage.getItem(LS.KEY) || DEFAULT_API_KEY;
+    document.getElementById('apiKey').value = savedKey;
+    document.getElementById('configApiKey').value = savedKey;
+  }
 
   // Pré-remplir date examen avec aujourd'hui
   document.getElementById('date_examen').value = new Date().toISOString().split('T')[0];
@@ -899,14 +914,14 @@ function selectNbQ(n, el) {
 async function startGeneration() {
   const matiere = document.getElementById('matiere').value.trim();
   const niveau  = document.getElementById('niveau').value;
-  const apiKey  = document.getElementById('apiKey').value.trim() || localStorage.getItem(LS.KEY) || DEFAULT_API_KEY;
+  const apiKey  = IS_PRODUCTION ? 'server' : (document.getElementById('apiKey').value.trim() || localStorage.getItem(LS.KEY) || DEFAULT_API_KEY);
   const duree   = parseInt(document.getElementById('duree').value) || 20;
   const langue  = document.getElementById('langueQCM').value;
 
   if (!matiere)      { showToast('Veuillez saisir la matière', 'error'); return; }
   if (!niveau)       { showToast('Veuillez choisir le niveau', 'error'); return; }
   if (!uploadedFile) { showToast('Veuillez uploader un document', 'error'); return; }
-  if (!apiKey.startsWith('sk-')) { showToast('Clé API invalide', 'error'); return; }
+  if (!IS_PRODUCTION && !apiKey.startsWith('sk-')) { showToast('Clé API invalide', 'error'); return; }
 
   showLoading('Lecture du document…');
   try {
@@ -977,6 +992,21 @@ ${text}`;
 }
 
 async function callOpenAI(apiKey, prompt) {
+  // En production : proxy Vercel — la clé ne quitte jamais le serveur
+  if (IS_PRODUCTION) {
+    const r = await fetch('/api/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, model: 'gpt-4o-mini', temperature: .4, max_tokens: 4000 })
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      if (r.status === 429) throw new Error('Limite API atteinte, réessayez dans quelques instants');
+      throw new Error(e.error || 'Erreur serveur ' + r.status);
+    }
+    return (await r.json()).content;
+  }
+  // En local : appel direct avec la clé de l'input
   const r = await fetch('https://api.openai.com/v1/chat/completions', {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
